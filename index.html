@@ -1,0 +1,3640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#17130f" />
+<title>我想生个娃｜像素人生模拟器</title>
+<style>
+  :root{
+    /* V2 低饱和纸张 / 暗场 */
+    --brand:#6f6157; --brand-deep:#17130f; --lilac:#9a8f80; --lilac-soft:#ccbfa6;
+    --paper:#efe7d8; --paper-2:#e5dcc9; --ink:#2a2420; --ink-soft:#6b6154; --line-soft:#c9bda6;
+    /* 三位伴侣专属低饱和色 */
+    --chen:#5f7078; --shen:#8a6a49; --zhou:#a9757e; --solo:#7c7468;
+    --xinli:#b06a72; --qinmi:#a97a8c; --jingji:#a6894e; --zhichi:#5f8088;
+    --danger:#b25a4e;
+    --ease:cubic-bezier(.22,1,.36,1);
+    --card-w:min(92vw,420px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);background:var(--brand-deep);overflow:hidden;
+    -webkit-user-select:none;user-select:none;touch-action:none;
+  }
+  #hud{display:none !important;}
+  #stage{position:fixed;inset:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  #bg{position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(150% 100% at 50% -25%, #332c25 0%, transparent 62%),
+      linear-gradient(180deg, #211c17 0%, #17130f 100%);
+    transition:filter 1.2s var(--ease);}
+  #flowers{position:absolute;left:0;right:0;bottom:0;height:40vh;z-index:0;pointer-events:none;opacity:1;
+    background:radial-gradient(120% 90% at 50% 130%, rgba(0,0,0,.55), transparent 70%);}
+
+  body.phase-dating #bg{filter:none;}
+  body.phase-life #bg{filter:brightness(.98);}
+  body.phase-derive #bg{filter:brightness(1.04) saturate(1.02);}
+
+  .wrap{position:relative;z-index:2;width:100%;max-width:1180px;height:100%;
+    display:flex;flex-direction:column;align-items:center;margin:0 auto;}
+  #topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;color:#fff;gap:10px;min-height:44px;}
+  #actLabel{font-weight:700;letter-spacing:.06em;font-size:15px;background:rgba(255,255,255,.14);padding:5px 12px;border-radius:999px;backdrop-filter:blur(4px);}
+  .top-btn{background:rgba(255,255,255,.14);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;transition:transform .12s var(--ease);}
+  .top-btn:active{transform:scale(.9);}
+  #yearTag{font-size:13px;opacity:.85;color:#fff;}
+
+  #hud{width:100%;max-width:var(--card-w);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 8px 2px;}
+  .meter{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .meter .ic{font-size:17px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));}
+  .meter .nm{font-size:11px;color:#fff;opacity:.9;}
+  .meter .bar{width:100%;height:8px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden;position:relative;}
+  .meter .fill{position:absolute;left:0;top:0;bottom:0;width:50%;border-radius:99px;transition:width .45s var(--ease);}
+  .meter.xinli .fill{background:var(--xinli);} .meter.xinli .ic{color:var(--xinli);}
+  .meter.qinmi .fill{background:var(--qinmi);} .meter.qinmi .ic{color:#e79fce;}
+  .meter.jingji .fill{background:var(--jingji);} .meter.jingji .ic{color:var(--jingji);}
+  .meter.zhichi .fill{background:var(--zhichi);} .meter.zhichi .ic{color:#7fd3e0;}
+  .meter .arrow{position:absolute;top:-16px;font-size:12px;font-weight:800;opacity:0;transition:opacity .18s var(--ease);}
+  .meter.prev-up .arrow{opacity:1;color:#8affc0;}
+  .meter.prev-down .arrow{opacity:1;color:#ff9db0;}
+  .meter.danger .ic{animation:breathe .8s ease-in-out infinite;color:var(--danger)!important;}
+  @keyframes breathe{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.18);}}
+
+  #table{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0;padding:8px 0 4px;}
+  #deck{position:relative;width:var(--card-w);height:min(56vh,520px);}
+  .card{position:absolute;inset:0;background:var(--paper);border-radius:24px;box-shadow:0 18px 50px rgba(20,8,50,.45);
+    overflow:hidden;display:flex;flex-direction:column;cursor:grab;will-change:transform,opacity;touch-action:none;}
+  .card.dragging{cursor:grabbing;transition:none;}
+  .card.settle{transition:transform .32s var(--ease),opacity .32s var(--ease);}
+  .card.enter{animation:cardIn .32s var(--ease);}
+  @keyframes cardIn{from{transform:scale(.94) translateY(10px);opacity:0;}to{transform:none;opacity:1;}}
+  .card .actbar{height:5px;flex:0 0 5px;background:var(--lilac);}
+  .card.p-life .actbar{background:var(--zhichi);}
+  .card.p-single .actbar{background:var(--jingji);}
+  .card.p-random .actbar{background:var(--xinli);}
+
+  .portrait{flex:1;position:relative;min-height:0;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 8%, hsl(var(--hue) 55% 82%) 0%, hsl(var(--hue) 45% 62%) 60%, hsl(var(--hue) 40% 48%) 100%);}
+  .portrait .tag{position:absolute;top:12px;left:14px;font-size:12px;font-weight:700;color:#fff;background:rgba(43,35,56,.42);padding:4px 10px;border-radius:99px;backdrop-filter:blur(3px);}
+
+  .card .body{flex:0 0 auto;padding:16px 18px 18px;background:var(--paper);}
+  .card .who{font-size:12px;color:var(--lilac);font-weight:700;letter-spacing:.05em;margin-bottom:6px;}
+  .card .text{font-size:clamp(15px,4.2vw,18px);line-height:1.55;color:var(--ink);font-weight:600;min-height:3.4em;}
+
+  .stamp{position:absolute;top:22px;font-size:20px;font-weight:900;letter-spacing:.05em;padding:8px 14px;border:3px solid;border-radius:12px;opacity:0;transition:opacity .12s;}
+  .stamp.no{left:18px;color:var(--danger);border-color:var(--danger);transform:rotate(-12deg);}
+  .stamp.yes{right:18px;color:#2e9e6b;border-color:#2e9e6b;transform:rotate(12deg);}
+
+  #choices{width:var(--card-w);display:flex;align-items:stretch;gap:10px;margin-top:12px;}
+  .choice-btn{flex:1;border:none;border-radius:16px;padding:13px 10px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;
+    transition:transform .12s var(--ease);line-height:1.25;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 6px 18px rgba(20,8,50,.3);}
+  .choice-btn .k{font-size:11px;font-weight:600;opacity:.85;}
+  .choice-btn.left{background:linear-gradient(135deg,#4c453d,#332e29);}
+  .choice-btn.right{background:linear-gradient(135deg,#6d5a52,#4a3d37);}
+  .choice-btn:active{transform:scale(.96);}
+  #hintline{width:var(--card-w);text-align:center;color:rgba(255,255,255,.8);font-size:12px;margin-top:8px;min-height:16px;}
+
+  #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:rgba(43,35,56,.92);color:#fff;padding:10px 16px;border-radius:14px;font-size:13.5px;line-height:1.5;max-width:86vw;text-align:center;
+    opacity:0;transition:opacity .28s,transform .28s var(--ease);z-index:40;pointer-events:none;box-shadow:0 8px 26px rgba(0,0,0,.4);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .overlay{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:32px 22px calc(32px + env(safe-area-inset-bottom));text-align:center;color:#efe7d8;
+    background:linear-gradient(170deg,#211c17 0%,#17130f 100%);backdrop-filter:blur(2px);overflow-y:auto;}
+  .overlay.show{display:flex;animation:fade .4s var(--ease);}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  .logo{font-size:clamp(28px,7.6vw,44px);font-weight:800;letter-spacing:.08em;color:#efe7d8;line-height:1.3;
+    font-family:"Songti SC","STSong",Georgia,serif;}
+  .slogan{margin-top:14px;font-size:clamp(16px,4.6vw,20px);color:var(--lilac-soft);font-weight:600;letter-spacing:.03em;}
+  .sub{margin-top:10px;font-size:13.5px;color:rgba(255,255,255,.72);line-height:1.7;max-width:30em;}
+  .big-btn{margin-top:30px;background:linear-gradient(135deg,#8a7c6b,#5f5348);border:none;color:#f3ece0;font-size:17px;font-weight:800;
+    padding:15px 42px;border-radius:999px;cursor:pointer;letter-spacing:.05em;box-shadow:0 10px 28px rgba(0,0,0,.45);transition:transform .14s var(--ease);}
+  .big-btn:active{transform:scale(.95);}
+  #ovSplash{padding-top:0;}
+  #ovSplash .logo{margin-top:-4vh;}
+  #startBtn{background:linear-gradient(135deg,#f3e8d3,#d9c7aa);border:1px solid #fff4df;color:#302820;
+    box-shadow:0 12px 34px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.16) inset;}
+  .ghost-btn{margin-top:14px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;font-size:14px;padding:11px 26px;border-radius:999px;cursor:pointer;}
+  .ov-title{font-size:clamp(24px,6.5vw,34px);font-weight:900;margin-bottom:6px;}
+  .ov-verdict{font-size:clamp(15px,4.4vw,18px);color:var(--lilac-soft);line-height:1.7;max-width:28em;margin:6px auto 0;font-weight:600;}
+  .fate-letter{width:100%;max-width:400px;margin:0 auto 4px;text-align:left;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line-soft);border-left:4px solid var(--accent,#8a7f70);
+    border-radius:14px;padding:22px 22px 20px;box-shadow:0 16px 40px rgba(0,0,0,.4);}
+  .fate-letter .fl-line{font-size:19px;font-weight:700;line-height:1.5;color:var(--accent,#6b6154);
+    font-family:"Songti SC","STSong",Georgia,serif;}
+  .fate-letter .fl-charm,.fate-letter .fl-pause{font-size:13.5px;line-height:1.7;color:var(--ink-soft);margin-top:12px;}
+  .fate-letter .fl-pause{color:#8a8072;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;}
+  .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:9px 13px;font-size:13px;min-width:104px;}
+  .badge b{display:block;font-size:15px;margin-top:3px;}
+  .end-life-line{margin:18px auto 0;font-size:15px;line-height:1.7;color:#efe2cc;
+    font-family:"Songti SC","STSong",Georgia,serif;}
+
+  .disclaimer{font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.65;max-width:30em;margin:16px auto 0;}
+
+  /* 四入口选择 */
+  .entry-list{display:flex;flex-direction:column;gap:11px;width:100%;max-width:440px;margin:18px auto 0;}
+  .entry-opt{text-align:left;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;
+    padding:14px 16px;cursor:pointer;color:#fff;transition:transform .12s var(--ease),background .2s;width:100%;}
+  .entry-opt:active{transform:scale(.98);}
+  .entry-opt:hover{background:rgba(255,255,255,.13);}
+  .entry-opt .et{font-size:16px;font-weight:800;}
+  .entry-opt .en{font-size:12.5px;color:var(--lilac-soft);margin-top:2px;font-weight:600;}
+  .entry-opt .es{font-size:12.5px;color:rgba(255,255,255,.68);margin-top:6px;line-height:1.6;}
+  .entry-opt.single{border-style:dashed;border-color:rgba(217,164,65,.55);background:rgba(217,164,65,.08);}
+  .entry-opt.single .en{color:var(--jingji);}
+
+  /* 平行人生分屏 */
+  .parallel{display:flex;gap:10px;width:100%;max-width:540px;margin:16px auto 0;}
+  .pl-col{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:13px 12px;text-align:left;}
+  .pl-col.alt{background:rgba(217,164,65,.10);border-color:rgba(217,164,65,.3);}
+  .pl-h{font-size:14px;font-weight:800;color:#fff;}
+  .pl-sub{font-size:11.5px;color:var(--lilac-soft);margin:2px 0 10px;min-height:2.6em;line-height:1.4;}
+  .pl-kids{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12);
+    font-size:12.5px;line-height:1.5;color:#f0dfc5;}
+  .parallel-system{font-size:13.5px;color:rgba(255,255,255,.72);line-height:1.65;max-width:28em;margin:18px auto 0;}
+  .parallel-line{font-size:clamp(15px,4.6vw,19px);font-weight:800;color:var(--lilac-soft);line-height:1.6;max-width:24em;margin:10px auto 0;}
+
+  /* ========== 视觉精修 ========== */
+  /* 开始页氛围 */
+  .kicker{display:inline-block;font-size:12px;letter-spacing:.26em;color:var(--lilac-soft);opacity:.9;
+    margin-bottom:14px;padding:6px 15px;border:1px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(255,255,255,.05);}
+  .rule{width:60px;height:2px;margin:16px auto 2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--lilac-soft),transparent);}
+
+  /* 恋爱候选卡：信件式文字卡（无剪影），手机纵向、桌面 2x2 */
+  #entryList{display:flex;flex-direction:column;gap:12px;width:100%;max-width:460px;margin:20px auto 0;}
+  .cand-card{position:relative;display:flex;flex-direction:column;text-align:left;cursor:pointer;overflow:hidden;
+    color:var(--ink);background:var(--paper);border:1px solid var(--line-soft);
+    border-left:4px solid var(--accent,#8a7f70);
+    border-radius:14px;padding:16px 18px 15px;box-shadow:0 12px 30px rgba(0,0,0,.34);
+    transition:transform .16s var(--ease),box-shadow .2s;}
+  .cand-card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.46);}
+  .cand-card:active{transform:scale(.99);}
+  .cand-card.single{border-left-style:dashed;background:var(--paper-2);}
+  .cc-name{font-size:20px;font-weight:800;letter-spacing:.03em;color:var(--ink);}
+  .cc-line{font-size:15px;font-weight:700;line-height:1.5;color:var(--accent,#6b6154);margin-top:8px;
+    font-family:"Songti SC","STSong",Georgia,serif;}
+  .cc-charm,.cc-pause{font-size:12.5px;line-height:1.6;color:var(--ink-soft);margin-top:7px;}
+  .cc-pause{color:#8a8072;}
+  .cc-go{font-size:12.5px;font-weight:800;color:var(--accent,#6b6154);margin-top:11px;letter-spacing:.04em;}
+
+  /* 舞台感：主卡区聚光 + 底座 */
+  #table{isolation:isolate;}
+  #table::before{content:"";position:absolute;width:min(86vw,470px);height:min(62vh,580px);border-radius:44px;z-index:0;pointer-events:none;
+    background:radial-gradient(58% 48% at 50% 40%, rgba(182,151,111,.24), transparent 72%);filter:blur(8px);}
+  #deck{z-index:1;}
+  #deck::after{content:"";position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);width:72%;height:26px;border-radius:50%;z-index:0;
+    background:radial-gradient(closest-side, rgba(0,0,0,.42), transparent);}
+  .card{border-radius:26px;box-shadow:0 22px 60px rgba(18,13,9,.58),0 0 0 1px rgba(255,255,255,.5) inset;}
+  .card .text{font-size:clamp(16px,4.4vw,19px);}
+  .card .who{font-size:12.5px;}
+  .portrait.scene-panel{background:
+    linear-gradient(155deg,hsla(var(--hue) 25% 72%/.68),hsla(var(--hue) 18% 43%/.78)),
+    radial-gradient(circle at 75% 20%,rgba(255,255,255,.32),transparent 28%);}
+  .portrait.scene-panel::before{content:"“";position:absolute;left:14%;top:20%;font:160px/1 Georgia,serif;
+    color:rgba(255,255,255,.14);}
+  .portrait.scene-panel::after{content:"生活切片";position:absolute;right:16px;bottom:14px;font-size:11px;
+    letter-spacing:.28em;color:rgba(255,255,255,.6);}
+
+  /* 左右选择层级 */
+  #choices{gap:12px;}
+  .choice-btn{padding:14px 10px;border-radius:18px;font-size:15.5px;}
+  .choice-btn.left{box-shadow:0 6px 18px rgba(20,8,50,.34),inset 0 0 0 1px rgba(255,255,255,.06);}
+  .choice-btn.right{box-shadow:0 8px 22px rgba(110,83,66,.48);}
+  .choice-btn .k{margin-top:3px;}
+
+  /* HUD 四表面板 */
+  #hud{background:rgba(20,10,44,.30);border:1px solid rgba(255,255,255,.09);border-radius:16px;
+    padding:10px 10px 7px;backdrop-filter:blur(4px);margin-top:2px;}
+  .meter .nm{letter-spacing:.02em;}
+
+  /* 仪式感揭晓：伴侣确认 / 结局 / 平行人生 */
+  #fateName{margin-top:2px;}
+  .badge{background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));}
+  .parallel{position:relative;}
+  .parallel::before{content:"VS";position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:3;
+    width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:900;color:#2b2338;background:var(--lilac-soft);box-shadow:0 6px 16px rgba(0,0,0,.45);}
+  .pl-col{box-shadow:0 8px 22px rgba(20,8,50,.3);}
+
+  /* 桌面舞台：候选卡 2x2、主卡更大 */
+  #ovEntry{justify-content:flex-start;padding-top:28px;}
+  #ovEntry .entry-list{margin-top:14px;}
+  #ovEntry .disclaimer{margin-top:10px;}
+
+  @media (min-width:760px){
+    #entryList{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px;}
+  }
+
+  @media (min-width:760px) and (max-height:700px){
+    #ovEntry{padding-top:18px;padding-bottom:18px;}
+    #ovEntry .ov-title{font-size:22px!important;margin-bottom:4px;}
+    #ovEntry .sub{font-size:12.5px;line-height:1.45;margin-top:6px;}
+    #entryList{gap:10px;margin-top:10px;}
+    .cand-card{padding:12px 14px 11px;}
+    .cc-name{font-size:17px;}
+    .cc-line{font-size:14px;margin-top:6px;}
+    .cc-charm,.cc-pause{font-size:11.5px;margin-top:5px;}
+    .cc-go{font-size:12px;margin-top:8px;}
+  }
+
+  #rotate{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:var(--brand-deep);color:#fff;font-size:16px;text-align:center;padding:24px;}
+  @media (max-height:430px) and (orientation:landscape){#rotate{display:flex;}}
+  @media (min-width:1024px){:root{--card-w:420px;} #hud{max-width:520px;} #deck{height:min(60vh,560px);}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.08s!important;}}
+</style>
+</head>
+<body class="phase-dating">
+<div id="stage">
+  <div id="bg"></div>
+  <div id="flowers"></div>
+  <div class="wrap">
+    <div id="topbar">
+      <button class="top-btn" id="menuBtn" aria-label="重开">↺</button>
+      <div id="actLabel">序章</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="yearTag"></span>
+        <button class="top-btn" id="setBtn" aria-label="设置">⚙</button>
+      </div>
+    </div>
+    <div id="hud" aria-label="关系四项状态">
+      <div class="meter xinli" data-k="xinli"><span class="arrow">▲</span><span class="ic">✦</span><span class="nm">心力</span><div class="bar"><div class="fill"></div></div></div>
+      <div class="meter qinmi" data-k="qinmi"><span class="arrow">▲</span><span class="ic">♥</span><span class="nm">亲密</span><div class="bar"><div class="fill"></div></div></div>
+      <div class="meter jingji" data-k="jingji"><span class="arrow">▲</span><span class="ic">¥</span><span class="nm">经济</span><div class="bar"><div class="fill"></div></div></div>
+      <div class="meter zhichi" data-k="zhichi"><span class="arrow">▲</span><span class="ic">✿</span><span class="nm">支持网</span><div class="bar"><div class="fill"></div></div></div>
+    </div>
+    <div id="table"><div id="deck"></div></div>
+    <div id="choices">
+      <button class="choice-btn left" id="btnLeft">拒绝<span class="k">← / 左滑</span></button>
+      <button class="choice-btn right" id="btnRight">接受<span class="k">→ / 右滑</span></button>
+    </div>
+    <div id="hintline"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="overlay" id="ovSplash">
+  <div class="logo">如果和TA过下去</div>
+  <div class="rule"></div>
+  <div class="slogan">你选的不是一个人，是往后每一个平常的清晨。</div>
+  <div class="sub">七个夜晚，一段关系。没有对错，只有你会活成谁。</div>
+  <button class="big-btn" id="startBtn">遇见第一个人</button>
+  <div class="disclaimer">情境取材自公开的家庭与人口研究，不预测任何人的未来。</div>
+</div>
+
+<div class="overlay" id="ovEntry">
+  <div class="ov-title" style="font-size:24px;">你愿意和谁，把日子过下去？</div>
+  <div class="sub" style="max-width:26em;">你以为你在选一个人。其实你在选：谁出钱、谁照护、谁扛情绪、两家人怎么介入、风险由谁承担。</div>
+  <div class="entry-list" id="entryList"></div>
+  <div class="disclaimer">单身，是一条完整、平等的路，不是失败的备选。</div>
+</div>
+
+<div class="overlay" id="ovFate">
+  <div class="ov-title" id="fateName"></div>
+  <div class="fate-letter" id="fateLetter">
+    <div class="fl-line" id="fateLine"></div>
+    <div class="fl-charm" id="fateCharm"></div>
+    <div class="fl-pause" id="fatePause"></div>
+  </div>
+  <button class="big-btn" id="fateGo">和TA，过下去</button>
+</div>
+
+<div class="overlay" id="ovEnd">
+  <div class="kicker">十年之后 · 生活切片</div>
+  <div class="ov-title" id="endTitle"></div>
+  <div class="ov-verdict" id="endVerdict"></div>
+  <div class="badge-row" id="endBadges"></div>
+  <div class="disclaimer" style="margin-top:12px;">这是情境演示，不是对你的预测。</div>
+  <button class="big-btn" id="endReport">如果当初是另一个人 →</button>
+</div>
+
+<div class="overlay" id="ovParallel">
+  <div class="ov-title" style="font-size:24px;">同一个你，另一套日子。</div>
+  <div class="parallel" id="parallelBody"></div>
+  <div class="parallel-system">换的不是一个人决定命运，是谁来共担、谁来搭手。</div>
+  <div class="parallel-line">另一种人生也成立。只是你没选它。</div>
+  <button class="big-btn" id="replayBtn">换一个人，再过一生</button>
+</div>
+
+<div class="overlay" id="ovSet">
+  <div class="ov-title" style="font-size:24px;">设置</div>
+  <div class="sub">这段关系没有公开分数，也没有标准答案。<br>你的选择会被后来的生活记住，最后长成一段十年后的日子。</div>
+  <button class="big-btn" id="setResume">继续</button>
+  <button class="ghost-btn" id="setRestart">重新开始这一生</button>
+</div>
+
+<div id="rotate">请把手机竖过来体验 🌸</div>
+
+<script>
+"use strict";
+(function(){
+  /* ============ 可见四表 ============ */
+  var METERS=["xinli","qinmi","jingji","zhichi"];
+  var meterName={xinli:"心力",qinmi:"亲密",jingji:"经济",zhichi:"支持网"};
+  function E(m,h){ return {m:m||{}, h:h||{}}; }
+
+  /* ============ 三种伴侣原型（对应四入口的前三个） ============ */
+  var PARTNERS=[
+    { key:"C", name:"陈牧", hue:330, accent:"var(--chen)",
+      line:"「这事交给我，你别操心。」",
+      entryCharm:"果断有肩膀，你想要的，第二天就摆在桌上。",
+      entryPause:"可他的时间总在别处，委屈只换来一句「为咱俩」。",
+      charm:"果断、有肩膀。你说漏嘴想要什么，第二天它就在你桌上。和他站在一起，你觉得被罩住了。",
+      pause:"他的时间永远在别处。你的委屈对他是一条「待办」，吵到最后他总用「我这么拼还不是为了咱俩」收尾——听着没错，可你想要的不是这个。",
+      blurb:"能扛事、能赚钱，却常常把你一个人晾在原地",
+      heartText:"陈牧刚拿下一个大单，转你一笔钱让你自己去吃好的。你想和他聊聊今天的委屈，他回：‘别想太多，我忙完再说。’",
+      commit:{m:{jingji:16,zhichi:4,qinmi:-6,xinli:-4}, h:{reliability:12,careDivision:-12,conflictRepair:-8}, kid:8} },
+    { key:"B", name:"沈明", hue:210, accent:"var(--shen)",
+      line:"「以后这就是你的家，别客气。」",
+      entryCharm:"踏实准时，你随口说过的小事他都记得。",
+      entryPause:"可他把家人认得太快，大事却回头问你拿主意。",
+      charm:"踏实、准时、把你所有小事都记在心上。他家里人也早早把你当自家人，逢年过节有人惦记。",
+      pause:"他把「家人」认得太快，边界有点模糊——他妈有你们家钥匙。真遇上大事他没主意，会回头看你：「你说咋办？」有时候你觉得自己像多带了一个人。",
+      blurb:"稳得没有惊喜，却也稳得让你敢把日子交给他",
+      heartText:"沈明没什么惊喜，但每天都准时出现。你随口说想吃城另一头那家面，他默默排了一小时队，拎回来时面还热着。",
+      commit:{m:{zhichi:12,jingji:4,qinmi:4,xinli:-2}, h:{reliability:24,careDivision:10,conflictRepair:8}, kid:4} },
+    { key:"A", name:"周屿", hue:38, accent:"var(--zhou)",
+      line:"「钱的事下个月就顺了，你信我。」",
+      entryCharm:"懂你会哄，和他在一起像一直在恋爱。",
+      entryPause:"可「下个月」总有下个月，兜底的总是你。",
+      charm:"懂你、会聊、浪漫。你半夜的每一种情绪他都接得住，和他在一起像一直在恋爱。",
+      pause:"他的计划总在变，「下个月」总有下个月。慢慢你发现，兜底的那个人，好像一直是你。",
+      blurb:"最懂怎么哄你开心，最不懂怎么撑住一个家",
+      heartText:"周屿记得你每个小情绪，半夜给你发长语音哄你睡。可他说最近又投了个项目，钱先周转一下，下个月一定好。",
+      commit:{m:{xinli:12,qinmi:12,jingji:-8,zhichi:-2}, h:{reliability:-8,careDivision:0,conflictRepair:8}, kid:-8} }
+  ];
+  function partnerByKey(k){ for(var i=0;i<PARTNERS.length;i++){ if(PARTNERS[i].key===k) return PARTNERS[i]; } return PARTNERS[1]; }
+
+  /* ============ V2-4 单局固定七张关系卡（逐字文案；沿用 E()/hidden 字段映射） ============
+     顺序：① 甜里埋刺 → ② 第一次凉 → ③ 紧张 → ④ 意外重击(每局抽1) → ⑤ 谷底 → ⑥ 裂缝 → ⑦ 定调
+     每个分支带 narr = 选择后的一句生活旁白（逐字自 V2-4，无数字/箭头/加减）。 */
+
+  // 卡① 甜里埋刺（场景按三人变体）
+  function makeCard1(s){
+    var p=s.partner, t;
+    if(p.name==="陈牧") t="他订了很贵的餐厅庆祝你升职，整顿饭却接了三个电话。挂掉最后一个，他说：「我这么忙，不都是想以后给你更好的。」";
+    else if(p.name==="沈明") t="他默默配好你们家钥匙塞给你，「以后这就是你家」——你还没来得及想，要不要这么快。";
+    else t="他记得你随口提过的小馆子，特地带你去。结账时卡没刷过，他笑笑：「下次我请，这顿先记账上。」";
+    return { p:"life", who:"该高兴的那晚", hue:p.hue, text:t,
+      L:{label:"咽下那点不对劲，享受此刻", eff:E({qinmi:6,xinli:-6},{lifeMargin:-6}), setEcho:"swallowed",
+         narr:"甜是真的甜。可你也默许了一种以后会反复出现的模式。"},
+      R:{label:"当场把那点不对劲轻轻说破", eff:E({xinli:6,qinmi:-6},{careDivision:2,lifeMargin:4}),
+         narr:"你给关系立了个规矩。但蜜月降了温，他愣了一下，你也有点后悔扫兴。"} };
+  }
+
+  // 卡⑤ 谷底（“叫醒他”一侧的旁白按三人变体触发他的反应）
+  function makeCard5(s){
+    var p=s.partner, wake, swallowed=!!s.flags.echo_swallowed;
+    if(p.name==="陈牧") wake="「多喝热水，我开完会就回来」，然后他翻身睡了。";
+    else if(p.name==="沈明") wake="他慌手慌脚全程守着你，却帮不上什么，最后反倒是你在安慰他别急。";
+    else wake="他一整夜陪着你，第二天两个人都垮了，他要紧的事也耽误了。";
+    return { p:"life", who:"凌晨三点", hue:p.hue,
+      text:"凌晨三点，你烧到 39 度。他明天有很要紧的事。",
+      L:{label:"不吵醒他，自己撑到天亮", eff:E({xinli:-8},{careDivision:-6,lifeMargin:-8}),
+         narr:swallowed
+           ?"那晚你咽下了不对劲，这一晚你又一次做了懂事的人。屋里很静，静得你有点说不出的委屈。"
+           :"你又一次做了「懂事」的那个。屋里很静，静得你有点说不出的委屈。"},
+      R:{label:"叫醒他，让他请假陪你", eff:E({qinmi:-4},{careDivision:8,conflictRepair:-4,lifeMargin:-3}),
+         narr:wake} };
+  }
+
+  // 卡④ 意外重击池（每局随机抽 1 张，左右都有代价）
+  var SHOCKS=[
+    { p:"life", tag:"random", who:"他被裁的那天", hue:30, text:"他被裁了。",
+      L:{label:"你先顶上、扛一阵", eff:E({jingji:-4,xinli:-6},{careDivision:-8,reliability:2,lifeMargin:-8}),
+         narr:"家撑住了，但从此「扛」字慢慢长在你一个人身上。"},
+      R:{label:"一起摊开重算、他去找别的路", eff:E({jingji:-6,qinmi:4},{conflictRepair:8,careDivision:6,lifeMargin:-2}),
+         narr:"家里紧一阵，但你们头一回像并肩的队友。"} },
+    { p:"life", tag:"random", who:"你妈住院那晚", hue:30, text:"你妈半夜住院。",
+      L:{label:"你请假守着", eff:E({xinli:-6,zhichi:-2},{careDivision:-8,lifeMargin:-8}),
+         narr:"你没让家里乱，但也没人替你分这份累。"},
+      R:{label:"两人排班、也花钱请人搭手", eff:E({jingji:-6,zhichi:2},{careDivision:12,conflictRepair:4,lifeMargin:-3}),
+         narr:"钱紧了，可这件事你不是一个人在办。"} },
+    { p:"life", tag:"random", who:"升职的提名", hue:30, text:"你被提名升职，责任更大、钱更多、时间更少。",
+      L:{label:"先顾家，婉拒了", eff:E({jingji:-2,xinli:-8,qinmi:2},{careDivision:4,lifeMargin:-10}),
+         narr:"家稳了，你把自己的一段路折叠了起来。"},
+      R:{label:"接下来，冲一把", eff:E({jingji:12,xinli:4,qinmi:-4},{careDivision:-6,lifeMargin:8}),
+         narr:"你往前走了，家里那摊事得有人补，多半看他愿不愿意。"} }
+  ];
+
+  // 卡② 第一次凉
+  var CARD2={ p:"life", tag:"core", who:"一个远方的机会", hue:30,
+    text:"你拿到一个很好的外地机会，他不愿离开现在的城市。",
+    L:{label:"放弃机会，留下来", eff:E({qinmi:5,xinli:-8,jingji:-2},{lifeMargin:-12}),
+       narr:"你把关系放在了前面，家里的温度保住了。只是那个没去成的地方，会在往后某些疲惫的夜里回来找你。"},
+    R:{label:"为自己搏一次，先异地一年", eff:E({xinli:8,qinmi:-8},{conflictRepair:-2,lifeMargin:8}),
+       narr:"你替自己活了一次。但两个人隔着几百公里，很多话开始省略，你们都在赌对方能等。"} };
+
+  // 卡③ 紧张（两家人介入）
+  var CARD3={ p:"life", tag:"core", who:"两家人坐下来", hue:30,
+    text:"要不要把关系定下来。双方父母开始插手房子、彩礼、以后住哪，饭桌上的空气紧了。",
+    L:{label:"先不办，按我们自己的来", eff:E({xinli:4,zhichi:-8},{conflictRepair:2,lifeMargin:8}), kid:-4,
+       narr:"你守住了两个人的边界和节奏。代价是老人那份现成的托底没接住，往后紧要关头得自己扛。"},
+    R:{label:"顺着长辈，把事办了", eff:E({zhichi:10,jingji:2,xinli:-8},{careDivision:2,lifeMargin:-8}), kid:6,
+       narr:"你换来了两家人的搭手和底气。可这个家从此有别人的钥匙、别人的意见，你的地盘小了一圈。"} };
+
+  // 卡⑥ 裂缝（关系可信度）
+  var CARD6={ p:"life", tag:"core", who:"手机亮起来的那下", hue:30,
+    text:"你无意看到他手机弹出一条暧昧消息。他解释了。",
+    L:{label:"追问到底，要个说法", eff:E({qinmi:-6},{reliability:2}),
+       narr:"你守住了自己的清醒和底线。可有些信任一旦拿出来查，就很难再原样放回去了。"},
+    R:{label:"选择相信，翻篇", eff:E({qinmi:6},{conflictRepair:-6,lifeMargin:-4}),
+       narr:"你保住了此刻的平静和热度。只是心里按下的那个问号，不会自己消失。"} };
+
+  // 卡⑦ 定调（收束，绝不问要不要孩子）
+  var CARD7={ p:"life", tag:"core", who:"要不要，就这样了", hue:30,
+    text:"走到这一步，要不要把两个人的生活，真正绑到一起。",
+    L:{label:"先各自留一手，不急着绑死", eff:E({xinli:6,jingji:-4,qinmi:-2},{lifeMargin:10}), setRoute:"loose", kid:-6,
+       narr:"你们都还留着退路和自己的空间。好处是自由，代价是这段关系一直悬在半空，不再往下扎根。"},
+    R:{label:"把生活扎到一起，安个家", eff:E({jingji:8,zhichi:2,xinli:-8},{careDivision:4,lifeMargin:-8}), setRoute:"root", kid:8,
+       narr:"你们把根扎下去了，底气开始一点点累积。而你能自己转身的余地，也跟着窄了下来。"} };
+
+  /* ============ 单身线·处境卡 ============ */
+  var SINGLE=[
+    { p:"single", who:"一个人搬家", hue:210, text:"你租下一个采光很好的房子，一个人把家具拼起来。安静，也清净。",
+      L:{label:"简单点就好", eff:E({jingji:4,xinli:2})}, R:{label:"好好经营生活", eff:E({xinli:8,zhichi:4,jingji:-2})} },
+    { p:"single", who:"节日的空位", hue:280, text:"朋友们陆续成家，某个节日的饭桌上，只剩你一个人。",
+      L:{label:"享受独处", eff:E({xinli:6})}, R:{label:"约上老友聚聚", eff:E({zhichi:8,xinli:4})} },
+    { p:"single", who:"家里的催促", hue:40, text:"家里又开始催，说一个人老了没人照应。你怎么回应？",
+      L:{label:"坚持自己的节奏", eff:E({xinli:6,zhichi:-2})}, R:{label:"安抚，也留条门缝", eff:E({zhichi:6,xinli:-2})} },
+    { p:"single", who:"一次心动", hue:330, text:"你遇到一个还不错的人，但也看清了自己此刻并不想把生活整个交出去。",
+      L:{label:"保持距离，先做朋友", eff:E({xinli:4,zhichi:2})}, R:{label:"试着靠近一点点", eff:E({qinmi:4,xinli:2})} },
+    { p:"single", who:"一场体检", hue:280, text:"体检报告有个小信号，医生让复查。诊室外的椅子上，只有你自己。",
+      L:{label:"先放放，别吓自己", eff:E({xinli:2})}, R:{label:"认真去查，也约朋友陪", eff:E({zhichi:6,xinli:-2},{conflictRepair:6})} },
+    { p:"single", who:"共养的邀请", hue:170, text:"几位单身朋友提议合租一栋房子，互相照应，甚至共担未来的照护。",
+      L:{label:"还是想要自己的空间", eff:E({xinli:4,zhichi:-2})}, R:{label:"加入这张非婚的网", eff:E({zhichi:12,xinli:4})} }
+  ];
+
+  /* ============ 单身线·随机事件池（每局抽 1 张插入） ============ */
+  var SINGLE_RANDOM=[
+    { p:"single", tag:"random", who:"一次裁员风波", hue:20, text:"公司动荡，你也在名单边缘。一个人扛房租的日子，风险格外具体。",
+      L:{label:"缩开支，先稳住", eff:E({jingji:4,xinli:-4})}, R:{label:"找朋友搭伙、换条路", eff:E({zhichi:8,jingji:-2},{conflictRepair:4})} },
+    { p:"single", tag:"random", who:"父母生病", hue:200, text:"老人住院，只有你一个孩子能回去。请假、路费、护工，全压在你一个人身上。",
+      L:{label:"硬扛，自己安排", eff:E({xinli:-6,zhichi:-2})}, R:{label:"发动亲友和社区搭手", eff:E({zhichi:10,jingji:-4},{conflictRepair:4})} },
+    { p:"single", tag:"random", who:"一个说走就走的机会", hue:150, text:"一个外派机会摆在面前，没有谁需要你商量，也没有谁替你分担。",
+      L:{label:"稳妥些，留下来", eff:E({zhichi:4,xinli:-2})}, R:{label:"抓住它，去闯", eff:E({jingji:10,xinli:4,zhichi:-4})} }
+  ];
+
+  /* ============ 结局文案：十年后的一天（不替玩家下结论） ============ */
+  var ENDINGS={
+    manting:{t:"十年后 · 满庭",v:"周日早上七点，屋里有两三个孩子的动静。你在厨房，他在拖地，谁都没闲着，也没谁一个人扛。冰箱上贴着一张排得满满的轮班表。"},
+    xunchang:{t:"十年后 · 寻常一天",v:"六点半闹钟，一个孩子要送去上学。你煎蛋，他热奶。接送、辅导、周末去趟公园——日子按部就班，不惊艳，但踏实。"},
+    haojie:{t:"十年后 · 一个人的深夜",v:"又是你一个人哄睡、一个人收拾。他在加班，或者在睡。孩子有了，帮手却没跟上，很多个深夜，醒着的只有你。"},
+    fuzhu:{t:"十年后 · 来齐了的家",v:"客厅相框里，是你们一起等来的那个孩子。做过检查、打过针，也一起熬过来。现在他每天清晨扑过来，把你叫醒。"},
+    lingyang:{t:"十年后 · 慢慢熟起来的家",v:"血缘没有连上，日子却接上了。十年前签字那天还陌生的小孩，现在会在你出门前，别扭又认真地说一句“路上小心”。"},
+    wuzi:{t:"十年后 · 两个人的宽敞",v:"孩子没有来，你们就把生活重新铺开：空出来的房间成了书房，周末睡到自然醒，想走就走。两个人的日子，过得很满。"},
+    errenyuan:{t:"十年后 · 二人世界",v:"你们都清楚自己不要孩子。这套屋子被布置成完全属于你们的样子——一面墙的碟片，一张够大的工作台，和很多个不必对谁交代的清晨。"},
+    maohe:{t:"十年后 · 各过各的",v:"关于要不要孩子，你们始终没谈拢。十年后同住一个屋檐，话越来越少，很多话题都学会了绕着走。"},
+    sanchang:{t:"几年后 · 各自的路",v:"这段关系没能走到把日子定下来那一步就先散了。十年后的这个早上，你在另一处醒来——也许是另一座城，也许只是同一座城里，另一种活法。"},
+    single_full:{t:"十年后 · 一个人，满的",v:"清晨你在自己的房子里醒来。工作、朋友、爱好，把日子排得很有形状。有人搭伙，有人可倚，只是你没有把生活整个交给谁。"},
+    single_drift:{t:"十年后 · 一个人，松快",v:"清晨你一个人醒来，不用迁就谁的节奏。有时热闹，有时清静，你把两头都过成了自己的样子。"}
+  };
+
+  /* ============ 条件概率引擎：由末态 + 固定抽签涌现生育方式与孩子数（后台，无任何直接生/不生按钮） ============
+     - fateRoll 决定“孩子是否出现”：与 P_child 比较
+     - countRoll + childScore 决定 0-3 的孩子数量分布
+     - 平行人生对照复用同一 fateRoll/countRoll，只换伴侣，绝不重新抽签 */
+  function n01(v){ return Math.max(0,Math.min(1,v/100)); }
+  function computeOutcome(m,h,kidLean,ctx){
+    if(ctx.single){
+      var s=m.xinli*0.4+m.jingji*0.4+m.zhichi*0.2;
+      if(s>=56) return {endKey:"single_full",childCount:0,path:"独身·自足",single:true};
+      return {endKey:"single_drift",childCount:0,path:"独身·漂泊",single:true};
+    }
+    var relQuality=(m.xinli+m.qinmi+m.jingji+m.zhichi)/4*0.7 + h.conflictRepair*0.3;
+    var reliable=h.reliability>=42;
+    if(ctx.collapse) return {endKey:"sanchang",childCount:0,path:"中途散场",single:false};
+    if(!reliable && relQuality<52) return {endKey:"sanchang",childCount:0,path:"中途散场",single:false};
+
+    // 孩子是否出现：条件概率 P_child（各项归一化）
+    var pChild = 0.35*n01(h.lifeMargin) + 0.20*n01(h.reliability)
+               + 0.15*n01(m.jingji) + 0.15*n01(m.xinli) + 0.15*n01(h.conflictRepair);
+    var leanAdj = (kidLean-50)/100*0.30;              // ±0.15 的倾向微调，不改主权重结构
+    var pEff = Math.max(0, Math.min(1, pChild + leanAdj));
+    var wantKids = kidLean>=50;
+    var childAppears = ctx.fateRoll < pEff;           // 用开局固定 fateRoll 定夺
+
+    if(!childAppears){
+      if(!wantKids && h.lifeMargin>=54 && relQuality>=54) return {endKey:"errenyuan",childCount:0,path:"二人世界",single:false};
+      if(wantKids){
+        if(m.zhichi>=52 && m.jingji>=48) return {endKey:"fuzhu",childCount:1,path:"辅助生育",single:false};
+        if(h.lifeMargin>=56 && m.xinli>=50) return {endKey:"lingyang",childCount:1,path:"领养组家",single:false};
+        return {endKey:"wuzi",childCount:0,path:"缘悭一子",single:false};
+      }
+      return {endKey:"maohe",childCount:0,path:"貌合神离",single:false};
+    }
+
+    // 孩子出现：数量由 childScore 与 countRoll 共同抖动出 1-3
+    var childScore = 0.35*n01(h.careDivision) + 0.30*n01(m.zhichi) + 0.20*n01(m.jingji) + 0.15*n01(h.reliability);
+    var cs = childScore*0.8 + ctx.countRoll*0.2;      // 0..1，复用开局固定 countRoll
+    var count = cs>=0.72?3:(cs>=0.45?2:1);
+
+    // 体检信号 + 资源薄弱 → 走辅助/领养，压到 1 个
+    var fertScore=m.jingji*0.3+m.xinli*0.3+m.zhichi*0.2+h.reliability*0.2;
+    if(ctx.checkup && fertScore<52){
+      if(m.zhichi>=50) return {endKey:"fuzhu",childCount:1,path:"辅助生育",single:false};
+      return {endKey:"lingyang",childCount:1,path:"领养组家",single:false};
+    }
+    var strained = h.careDivision<46 || m.zhichi<46;
+    if(count>=2 && !strained && h.reliability>=55 && m.jingji>=50) return {endKey:"manting",childCount:count,path:"多子·协作",single:false};
+    if(strained) return {endKey:"haojie",childCount:Math.min(count,2),path:"独力照护",single:false};
+    return {endKey:"xunchang",childCount:Math.min(count,2),path:"寻常之家",single:false};
+  }
+
+  /* ============ 状态 ============ */
+  var state, deckStack=[];
+  function freshState(){
+    return {
+      phase:"dating",
+      meters:{xinli:50,qinmi:46,jingji:50,zhichi:48},
+      hidden:{reliability:50,careDivision:50,conflictRepair:50,lifeMargin:50},
+      kidLean:50, partner:null, year:0,
+      fateRoll:Math.random(),   // 开局固定：孩子是否出现的抽签
+      countRoll:Math.random(),  // 开局固定：孩子数量的抽签
+      flags:{checkup:false,collapse:false}, result:null
+    };
+  }
+
+  /* ============ DOM & 工具 ============ */
+  var $=function(id){return document.getElementById(id);};
+  var deckEl=$("deck"), actLabel=$("actLabel"), yearTag=$("yearTag"), hintline=$("hintline"),
+      toastEl=$("toast"), btnLeft=$("btnLeft"), btnRight=$("btnRight");
+  var hudMeters={};
+  Array.prototype.forEach.call(document.querySelectorAll("#hud .meter"),function(el){
+    hudMeters[el.getAttribute("data-k")]={el:el,fill:el.querySelector(".fill")};
+  });
+  function clamp(v){return Math.max(0,Math.min(100,v));}
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+  function renderMeters(){
+    METERS.forEach(function(k){
+      var v=state.meters[k], mm=hudMeters[k];
+      mm.fill.style.width=v+"%";
+      mm.el.classList.toggle("danger", v<=12||v>=88);
+    });
+  }
+  function showToast(html){
+    toastEl.innerHTML=html; toastEl.classList.add("show");
+    clearTimeout(showToast._t); showToast._t=setTimeout(function(){toastEl.classList.remove("show");},2200);
+  }
+  /* V2-3：选完不弹数字、不弹箭头、不弹加减。前台零反馈（生活旁白留待后续轮次实现）。 */
+  function applyEffect(eff){
+    METERS.forEach(function(k){ if(eff.m[k]) state.meters[k]=clamp(state.meters[k]+eff.m[k]); });
+    for(var hk in eff.h){ if(state.hidden.hasOwnProperty(hk)) state.hidden[hk]=clamp(state.hidden[hk]+eff.h[hk]); }
+  }
+  function applyFlag(f){ if(f==="checkup") state.flags.checkup=true; }
+  function setBodyPhase(p){
+    document.body.className="phase-"+(p==="derive"?"derive":(p==="dating"?"dating":"life"));
+  }
+
+  /* ============ 卡片渲染与拖拽 ============ */
+  var current=null, cardEl=null, drag={active:false,x0:0,dx:0}, busy=false;
+  function portraitHTML(hue,tag){
+    return '<div class="portrait scene-panel" style="--hue:'+hue+'"><span class="tag">'+tag+'</span></div>';
+  }
+  function buildCard(data){
+    var el=document.createElement("div");
+    el.className="card enter p-"+(data.p||"life");
+    var who=data.who||"";
+    el.innerHTML='<div class="actbar"></div>'+portraitHTML(data.hue,who)+
+      '<div class="stamp no">拒绝</div><div class="stamp yes">接受</div>'+
+      '<div class="body"><div class="who">'+who+'</div><div class="text">'+data.text+'</div></div>';
+    attachDrag(el);
+    return el;
+  }
+  function showCard(data){
+    current=data; setBodyPhase(state.phase);
+    if(data.actLabel) actLabel.textContent=data.actLabel;
+    if(cardEl){ cardEl.remove(); }
+    cardEl=buildCard(data); deckEl.appendChild(cardEl);
+    btnLeft.childNodes[0].nodeValue=data.L?data.L.label:"拒绝";
+    btnRight.childNodes[0].nodeValue=data.R?data.R.label:"接受";
+    hintline.textContent=data.hint||"拖动卡片，或用左右按钮 / ← → 键";
+    updateYear(); renderMeters();
+    busy=false;                      // 新卡就位，解锁下一次选择
+  }
+  var SEASONS=["春","夏","秋","冬"];
+  function updateYear(){
+    if(state.phase==="life"||state.phase==="single"){
+      var t=Math.max(1,state.year), yr=Math.ceil(t/4), q=(t-1)%4;
+      yearTag.textContent="第"+yr+"年·"+SEASONS[q];
+    } else yearTag.textContent="";
+  }
+  function attachDrag(el){
+    el.addEventListener("pointerdown",function(e){
+      if(busy||!current||!current.L) return;
+      drag.active=true; drag.x0=e.clientX; drag.dx=0;
+      el.classList.add("dragging"); el.classList.remove("settle"); el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener("pointermove",function(e){
+      if(!drag.active) return;
+      drag.dx=e.clientX-drag.x0;
+      var rot=Math.max(-12,Math.min(12,drag.dx/18));
+      el.style.transform="translateX("+drag.dx+"px) rotate("+rot+"deg)";
+      var t=Math.min(1,Math.abs(drag.dx)/90);
+      el.querySelector(".stamp.yes").style.opacity=drag.dx>0?t:0;
+      el.querySelector(".stamp.no").style.opacity=drag.dx<0?t:0;
+      previewMeters(drag.dx>40?"R":(drag.dx<-40?"L":null));
+    });
+    el.addEventListener("pointerup",endDrag);
+    el.addEventListener("pointercancel",endDrag);
+  }
+  function endDrag(){
+    if(!drag.active) return;
+    drag.active=false; cardEl.classList.remove("dragging"); clearPreview();
+    if(drag.dx>90) flyOut("R");
+    else if(drag.dx<-90) flyOut("L");
+    else{ cardEl.classList.add("settle"); cardEl.style.transform=""; cardEl.querySelector(".stamp.yes").style.opacity=0; cardEl.querySelector(".stamp.no").style.opacity=0; }
+  }
+  function previewMeters(dir){
+    clearPreview();
+    if(!dir||!current||!current.L) return;
+    var eff=dir==="R"?current.R.eff:current.L.eff;
+    if(!eff) return;
+    METERS.forEach(function(k){
+      var d=eff.m[k]||0; if(!d) return;
+      hudMeters[k].el.classList.add(d>0?"prev-up":"prev-down");
+      hudMeters[k].el.querySelector(".arrow").textContent=d>0?"▲":"▼";
+    });
+  }
+  function clearPreview(){ METERS.forEach(function(k){ hudMeters[k].el.classList.remove("prev-up","prev-down"); }); }
+  function flyOut(dir){
+    if(busy) return;                 // 重入锁：一次只处理一张卡的飞出
+    busy=true;
+    var el=cardEl, off=dir==="R"?window.innerWidth:-window.innerWidth, chosen=current;
+    el.classList.add("settle");
+    el.style.transform="translateX("+off+"px) rotate("+(dir==="R"?24:-24)+"deg)"; el.style.opacity="0";
+    setTimeout(function(){ resolveChoice(chosen,dir); },260);
+  }
+  function choose(dir){ if(busy||!current||drag.active||!current.L) return; flyOut(dir); }
+
+  /* ============ 流程解析 ============ */
+  function resolveChoice(card,dir){
+    var branch=dir==="R"?card.R:card.L;
+    applyEffect(branch.eff);
+    if(branch.setFlag) applyFlag(branch.setFlag);
+    if(branch.setEcho) state.flags["echo_"+branch.setEcho]=true;
+    if(branch.setRoute) state.flags.route=branch.setRoute;
+    if(branch.kid) state.kidLean=clamp(state.kidLean+branch.kid);
+    if(branch.narr) showToast(branch.narr);   // 选择后仅一句生活旁白，无数字/箭头/加减
+    renderMeters();
+    if(state.phase==="life"){
+      var extreme=false;
+      METERS.forEach(function(k){ if(state.meters[k]<=3||state.meters[k]>=98) extreme=true; });
+      if(extreme){ state.flags.collapse=true; return derive(); }
+      lifeNext();
+    } else if(state.phase==="single"){ singleNext(); }
+  }
+
+  /* ============ 序章：四入口选择 ============ */
+  function showEntry(){
+    setBodyPhase("dating");
+    actLabel.textContent="序章 · 选择入口"; yearTag.textContent="";
+    if(cardEl){ cardEl.remove(); cardEl=null; }
+    renderMeters();
+    var list=$("entryList"); list.innerHTML="";
+    PARTNERS.forEach(function(p){
+      var b=document.createElement("button");
+      b.className="cand-card"; b.setAttribute("data-kind",p.key);
+      b.style.setProperty("--accent",p.accent);
+      b.innerHTML=
+        '<div class="cc-name">'+p.name+'</div>'+
+        '<div class="cc-line">'+p.line+'</div>'+
+        '<div class="cc-charm">'+p.entryCharm+'</div>'+
+        '<div class="cc-pause">'+p.entryPause+'</div>'+
+        '<div class="cc-go">选 TA →</div>';
+      list.appendChild(b);
+    });
+    var s=document.createElement("button");
+    s.className="cand-card single"; s.setAttribute("data-kind","single");
+    s.style.setProperty("--accent","var(--solo)");
+    s.innerHTML=
+      '<div class="cc-name">一个人</div>'+
+      '<div class="cc-line">「先不把日子交给谁。」</div>'+
+      '<div class="cc-charm">时间和选择都归你，日子长成自己的形状。</div>'+
+      '<div class="cc-pause">风险也自己扛，深夜想有人搭手时得自己撑。</div>'+
+      '<div class="cc-go">一个人过 →</div>';
+    list.appendChild(s);
+    openOverlay("ovEntry");
+  }
+  function chooseEntry(kind){
+    if(kind==="single"){ closeOverlay("ovEntry"); beginSingle(); return; }
+    commitPartner(partnerByKey(kind));
+  }
+
+  /* ---- 选定伴侣 ---- */
+  function commitPartner(p){
+    state.partner=p;
+    applyEffect(E(p.commit.m,p.commit.h));
+    state.kidLean=clamp(state.kidLean+p.commit.kid);
+    renderMeters();
+    $("fateName").textContent="你选择了 "+p.name;
+    $("fateLetter").style.setProperty("--accent",p.accent);
+    $("fateLine").textContent=p.line;
+    $("fateCharm").textContent=p.charm;
+    $("fatePause").textContent=p.pause;
+    closeOverlay("ovEntry");
+    openOverlay("ovFate");
+  }
+  function beginLife(){
+    closeOverlay("ovFate");
+    state.phase="life"; state.year=0; setBodyPhase("life");
+    deckStack=buildLifeDeck(state.partner);
+    lifeNext();
+  }
+  function buildLifeDeck(partner){
+    // V2-4 固定七张，顺序不变；卡①⑤按伴侣变体（build），卡④从三张意外中随机抽 1
+    return [
+      { build:makeCard1, tag:"core" },
+      CARD2,
+      CARD3,
+      pick(SHOCKS),
+      { build:makeCard5, tag:"core" },
+      CARD6,
+      CARD7
+    ];
+  }
+  function lifeNext(){
+    if(deckStack.length){
+      var d=deckStack.shift(); state.year++;
+      var card = d.build ? d.build(state) : d;
+      showCard({ p:card.p||"life", who:card.who, hue:card.hue, text:card.text, L:card.L, R:card.R,
+        actLabel:(d.tag==="random"?"第二幕 · 意外来敲门":"第二幕 · 关系经营"),
+        hint:(d.tag==="random"?"随机事件 · 每一局都可能不同":(card.hint||"拖动卡片，或用左右按钮 / ← →")) });
+    } else derive();
+  }
+  function beginSingle(){
+    state.phase="single"; state.partner=null; setBodyPhase("single"); state.year=0;
+    deckStack=buildSingleDeck();
+    singleNext();
+  }
+  function buildSingleDeck(){
+    var d=SINGLE.slice();
+    var r=pick(SINGLE_RANDOM);               // 单身线每局也出现 1 个随机事件
+    var pos=2+Math.floor(Math.random()*(d.length-1));
+    if(pos>d.length) pos=d.length;
+    d.splice(pos,0,r);
+    return d;
+  }
+  function singleNext(){
+    if(deckStack.length){ var d=deckStack.shift(); state.year++;
+      showCard({ p:"single", who:d.who, hue:d.hue, text:d.text, L:d.L, R:d.R,
+        actLabel:"一个人的日子", hint:"这一局你没有伴侣，独自做每一个决定" });
+    } else derive();
+  }
+
+  /* ============ 第三幕：结算 ============ */
+  function derive(){
+    var isSingle=(state.phase==="single");
+    state.phase="derive"; setBodyPhase("derive");
+    actLabel.textContent="第三幕 · 十年之后"; yearTag.textContent="结算";
+    if(cardEl){ cardEl.remove(); cardEl=null; }
+    var ctx={collapse:!!state.flags.collapse, single:isSingle, checkup:!!state.flags.checkup,
+             fateRoll:state.fateRoll, countRoll:state.countRoll};
+    var out=computeOutcome(state.meters,state.hidden,state.kidLean,ctx);
+    var m=state.meters;
+    var relQuality=(m.xinli+m.qinmi+m.jingji+m.zhichi)/4*0.7 + state.hidden.conflictRepair*0.3;
+    state.result={endKey:out.endKey,childCount:out.childCount,path:out.path,relQuality:relQuality,single:isSingle};
+    showEnding();
+  }
+  function showEnding(){
+    var r=state.result, e=ENDINGS[r.endKey]||ENDINGS.xunchang;
+    $("endTitle").textContent=e.t; $("endVerdict").textContent=e.v;
+    var childLine=r.childCount>0
+      ?"十年后的餐桌边，坐着你们和 "+r.childCount+" 个孩子。"
+      :"十年后，你的生活里没有孩子。";
+    $("endBadges").innerHTML='<div class="end-life-line">'+childLine+'</div>';
+    openOverlay("ovEnd");
+  }
+
+  /* ============ 平行人生：同一个你，换一个伴侣 ============ */
+  function altPartnerFor(){
+    if(state.result.single) return partnerByKey("B");
+    var k=state.partner.key;
+    if(k==="A") return partnerByKey("B");
+    if(k==="B") return partnerByKey("A");
+    return partnerByKey("B"); // C -> B
+  }
+  function counterfactual(alt){
+    var m={}, h={}, k;
+    for(k in state.meters) m[k]=state.meters[k];
+    for(k in state.hidden) h[k]=state.hidden[k];
+    var lean=state.kidLean;
+    if(state.partner){
+      var c0=state.partner.commit;
+      for(k in c0.m){ if(m.hasOwnProperty(k)) m[k]-=c0.m[k]; }
+      for(k in c0.h){ if(h.hasOwnProperty(k)) h[k]-=c0.h[k]; }
+      lean-=c0.kid;
+    }
+    var c1=alt.commit;
+    for(k in c1.m){ if(m.hasOwnProperty(k)) m[k]+=c1.m[k]; }
+    for(k in c1.h){ if(h.hasOwnProperty(k)) h[k]+=c1.h[k]; }
+    lean+=c1.kid;
+    for(k in m) m[k]=clamp(m[k]);
+    for(k in h) h[k]=clamp(h[k]);
+    lean=clamp(lean);
+    // 平行人生：复用同一 fateRoll/countRoll，只换伴侣，绝不重新抽签
+    var out=computeOutcome(m,h,lean,{single:false,checkup:!!state.flags.checkup,collapse:false,
+             fateRoll:state.fateRoll, countRoll:state.countRoll});
+    return {m:m,h:h,out:out};
+  }
+  function plCol(cls,head,sub,endTitle,childCount){
+    var childText=childCount>0?"这个家里，最后有 "+childCount+" 个孩子。":"这条日子里，没有孩子。";
+    return '<div class="pl-col '+cls+'"><div class="pl-h">'+head+'</div>'+
+      '<div class="pl-sub">'+sub+'</div>'+
+      '<div style="font-size:16px;font-weight:800;color:#efe7d8;margin-top:8px;line-height:1.45;">'+endTitle+'</div>'+
+      '<div class="pl-kids">'+childText+'</div></div>';
+  }
+  function showParallel(){
+    closeOverlay("ovEnd");
+    var alt=altPartnerFor();
+    var cf=counterfactual(alt);
+    var leftName = state.result.single ? "一个人过" : (state.partner?state.partner.name:"—");
+    var leftEnd  = (ENDINGS[state.result.endKey]||{}).t || "";
+    var rightEnd = (ENDINGS[cf.out.endKey]||{}).t || "";
+    // 一组对照文本：同一支签，只换一个人，各自走到的十年后
+    $("parallelBody").innerHTML=
+      plCol("","你选的这条","和 "+leftName+" 一起，走到了",leftEnd,state.result.childCount)+
+      plCol("alt","如果当初","换成 "+alt.name+"，会走到",rightEnd,cf.out.childCount);
+    openOverlay("ovParallel");
+  }
+
+  /* ============ 覆盖层 & 开局 ============ */
+  function openOverlay(id){ $(id).classList.add("show"); }
+  function closeOverlay(id){ $(id).classList.remove("show"); }
+  function startGame(){
+    state=freshState(); deckStack=[]; busy=false;
+    ["ovSplash","ovEntry","ovFate","ovEnd","ovParallel","ovSet"].forEach(closeOverlay);
+    showEntry();
+  }
+  function replay(){
+    ["ovParallel","ovEnd"].forEach(closeOverlay);
+    openOverlay("ovSplash");
+  }
+
+  /* ============ 事件绑定 ============ */
+  $("startBtn").addEventListener("click",startGame);
+  $("entryList").addEventListener("click",function(e){
+    var t=e.target; while(t && t!==this && !t.getAttribute("data-kind")) t=t.parentNode;
+    if(t && t.getAttribute && t.getAttribute("data-kind")) chooseEntry(t.getAttribute("data-kind"));
+  });
+  $("fateGo").addEventListener("click",beginLife);
+  $("endReport").addEventListener("click",showParallel);   // 结局按钮直接进入平行人生（跳过人生报告页）
+  $("replayBtn").addEventListener("click",replay);
+  $("menuBtn").addEventListener("click",function(){ openOverlay("ovSet"); });
+  $("setBtn").addEventListener("click",function(){ openOverlay("ovSet"); });
+  $("setResume").addEventListener("click",function(){ closeOverlay("ovSet"); });
+  $("setRestart").addEventListener("click",function(){ closeOverlay("ovSet"); openOverlay("ovSplash"); });
+  btnLeft.addEventListener("click",function(){ choose("L"); });
+  btnRight.addEventListener("click",function(){ choose("R"); });
+  btnLeft.addEventListener("pointerenter",function(){ if(current&&current.L) previewMeters("L"); });
+  btnLeft.addEventListener("pointerleave",clearPreview);
+  btnRight.addEventListener("pointerenter",function(){ if(current&&current.L) previewMeters("R"); });
+  btnRight.addEventListener("pointerleave",clearPreview);
+  document.addEventListener("keydown",function(e){
+    if($("ovSplash").classList.contains("show")){ if(e.key==="Enter"||e.key===" ") startGame(); return; }
+    if($("ovEntry").classList.contains("show")) return;
+    if($("ovFate").classList.contains("show")){ if(e.key==="Enter"||e.key===" ") beginLife(); return; }
+    if($("ovEnd").classList.contains("show")){ if(e.key==="Enter"||e.key===" ") showParallel(); return; }
+    if($("ovParallel").classList.contains("show")){ if(e.key==="Enter"||e.key===" ") replay(); return; }
+    if($("ovSet").classList.contains("show")) return;
+    if(e.key==="ArrowLeft"){ e.preventDefault(); choose("L"); }
+    else if(e.key==="ArrowRight"){ e.preventDefault(); choose("R"); }
+  });
+
+  state=freshState();          // 必须先初始化 state，renderMeters 依赖 state.meters
+  renderMeters();
+  openOverlay("ovSplash");
+})();
+</script>
+<style id="v3-pixel-life-style">
+  :root{
+    --v3-ink:#4b2630;
+    --v3-brown:#6f3e2e;
+    --v3-deep:#3a2028;
+    --v3-wood:#b96a3d;
+    --v3-wood-light:#e8a45e;
+    --v3-cream:#fff3d8;
+    --v3-paper:#fff9e9;
+    --v3-pink:#f39a9c;
+    --v3-gold:#f4c35c;
+    --v3-green:#69a96b;
+    --v3-shadow:rgba(53,26,28,.34);
+  }
+  html,body{width:100%;height:auto;min-height:100%;margin:0;background:#2b1820;overflow-y:auto;}
+  html{scrollbar-color:#c97845 #3a2028;scrollbar-width:auto;}
+  body{
+    overflow-x:hidden;
+    overflow-y:scroll;
+    touch-action:pan-y;
+    overscroll-behavior-y:auto;
+    color:var(--v3-ink);
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  body::-webkit-scrollbar{width:12px;}
+  body::-webkit-scrollbar-track{background:#3a2028;}
+  body::-webkit-scrollbar-thumb{background:#c97845;border:2px solid #3a2028;border-radius:8px;}
+  body::-webkit-scrollbar-thumb:hover{background:#e8a45e;}
+  button{font:inherit;}
+  #v3-app{
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+    overflow-y:visible;
+    background:
+      linear-gradient(rgba(57,28,35,.08),rgba(57,28,35,.22)),
+      url("./pixel-life-town-v1.png") center/cover fixed;
+  }
+  #v3-app::after{
+    content:"";
+    pointer-events:none;
+    position:fixed;
+    inset:0;
+    z-index:50;
+    background:repeating-linear-gradient(0deg,rgba(44,24,30,.035) 0 1px,transparent 1px 3px);
+    mix-blend-mode:multiply;
+  }
+  .v3-screen{display:none;min-height:100vh;position:relative;z-index:1;}
+  .v3-screen.is-active{display:flex;}
+  .v3-pixel-panel{
+    background:var(--v3-paper);
+    border:4px solid var(--v3-deep);
+    box-shadow:0 0 0 4px var(--v3-wood-light),0 0 0 8px var(--v3-brown),10px 12px 0 var(--v3-shadow);
+    clip-path:polygon(10px 0,calc(100% - 10px) 0,calc(100% - 10px) 5px,100% 5px,100% calc(100% - 10px),calc(100% - 5px) calc(100% - 10px),calc(100% - 5px) 100%,10px 100%,10px calc(100% - 5px),0 calc(100% - 5px),0 10px,5px 10px,5px 5px,10px 5px);
+  }
+  .v3-btn{
+    border:3px solid var(--v3-deep);
+    color:#fff8df;
+    background:linear-gradient(#c97845,#995033);
+    box-shadow:inset 0 0 0 3px #eda15c,0 5px 0 #502d29;
+    min-height:50px;
+    padding:11px 20px;
+    font-weight:900;
+    letter-spacing:.06em;
+    cursor:pointer;
+    transition:transform .12s,filter .12s;
+    clip-path:polygon(6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,100% 3px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) 100%,6px 100%,6px calc(100% - 3px),0 calc(100% - 3px),0 6px,3px 6px,3px 3px,6px 3px);
+  }
+  .v3-btn:hover{filter:brightness(1.08);transform:translateY(-2px);}
+  .v3-btn:active{transform:translateY(3px);box-shadow:inset 0 0 0 3px #eda15c,0 2px 0 #502d29;}
+  .v3-btn.v3-soft{background:linear-gradient(#f0b66d,#c87945);color:#4b2630;}
+  .v3-btn.v3-ghost{background:rgba(255,249,233,.88);color:var(--v3-brown);box-shadow:inset 0 0 0 2px #efc47b,0 4px 0 #6b3d30;}
+  .v3-kicker{font-size:12px;font-weight:900;letter-spacing:.2em;color:#9a553b;text-transform:uppercase;}
+
+  /* 首屏 */
+  #v3-home{align-items:center;justify-content:center;padding:28px;}
+  .v3-home-card{width:min(720px,calc(100vw - 52px));padding:32px 42px 36px;text-align:center;background:rgba(255,248,224,.94);}
+  .v3-logo-small{font-size:13px;font-weight:900;letter-spacing:.32em;color:#9b563b;margin-bottom:10px;}
+  .v3-title{
+    margin:0;
+    font-size:clamp(45px,8vw,82px);
+    line-height:1.02;
+    letter-spacing:.08em;
+    color:#fff1c7;
+    -webkit-text-stroke:7px #58302f;
+    paint-order:stroke fill;
+    text-shadow:0 7px 0 #d77662,0 11px 0 #723c36;
+  }
+  .v3-home-line{font-size:clamp(17px,2.5vw,23px);font-weight:900;margin:26px 0 8px;color:#5b3032;}
+  .v3-home-sub{font-size:14px;line-height:1.8;color:#80594e;margin:0 auto 24px;max-width:530px;}
+  .v3-home-lineup{height:128px;display:flex;align-items:flex-end;justify-content:center;gap:0;margin:14px auto -2px;}
+  .v3-home-person{width:90px;height:120px;margin:0 -4px;filter:drop-shadow(4px 5px 0 rgba(76,39,38,.18));}
+  .v3-home-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .v3-home-actions .v3-btn:first-child{font-size:18px;min-width:210px;}
+
+  /* 起点选择 */
+  #v3-origin{align-items:center;justify-content:center;padding:28px;}
+  .v3-origin-shell{width:min(1040px,calc(100vw - 46px));padding:24px 28px 30px;background:rgba(255,248,228,.96);}
+  .v3-section-head{text-align:center;margin-bottom:20px;}
+  .v3-section-head h2{font-size:30px;margin:6px 0 5px;color:#5b3032;}
+  .v3-section-head p{margin:0;color:#8b6254;font-size:14px;}
+  .v3-origin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .v3-origin-card{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    border:3px solid #704033;
+    background:#fff9e9;
+    padding:14px 13px 16px;
+    min-height:260px;
+    cursor:pointer;
+    text-align:left;
+    color:#533037;
+    box-shadow:inset 0 0 0 3px #efc57b,0 6px 0 #714132;
+    transition:transform .13s,background .13s;
+  }
+  .v3-origin-card::before{
+    content:attr(data-kind);
+    position:absolute;left:10px;top:9px;
+    padding:3px 7px;
+    border:2px solid rgba(104,58,42,.72);
+    background:rgba(255,238,186,.92);
+    color:#71412f;
+    font-size:10px;font-weight:1000;letter-spacing:.08em;
+  }
+  .v3-origin-card:hover{transform:translateY(-4px);background:#fff1d7;}
+  .v3-origin-card.is-solo{
+    background:linear-gradient(#fff8df,#ead7b5);
+    border-color:#8a6840;
+  }
+  .v3-origin-card.is-solo .v3-origin-tag{color:#7f6040;}
+  .v3-solo-symbol{
+    width:128px;height:128px;margin:24px auto 22px;
+    display:grid;place-items:center;
+    border:3px solid #6f4633;
+    background:linear-gradient(180deg,#fff2c6,#d8aa6f);
+    box-shadow:inset 0 0 0 4px rgba(255,250,219,.72),0 6px 0 rgba(93,52,35,.28);
+    color:#6a3c2b;font-size:56px;font-weight:1000;
+  }
+  .v3-solo-symbol::before{content:"独";font-size:50px;line-height:1;}
+  .v3-portrait{
+    width:150px;
+    height:200px;
+    margin:0 auto 10px;
+    filter:drop-shadow(5px 7px 0 rgba(76,39,38,.22));
+  }
+  .v3-sprite{
+    background-image:url("./pixel-characters-v1.png");
+    background-repeat:no-repeat;
+    background-size:400% 200%;
+    image-rendering:pixelated;
+  }
+  .v3-sprite-solo{background-position:0 0;}
+  .v3-sprite-chen{background-position:33.333% 0;}
+  .v3-sprite-shen{background-position:66.667% 0;}
+  .v3-sprite-zhou{background-position:100% 0;}
+  .v3-sprite-doctor{background-position:0 100%;}
+  .v3-sprite-family{background-position:33.333% 100%;}
+  .v3-sprite-friend{background-position:66.667% 100%;}
+  .v3-sprite-social{background-position:100% 100%;}
+  .v3-sprite-solo,.v3-sprite-chen,.v3-sprite-shen,.v3-sprite-zhou{
+    background-image:url("./visual-iterations/visual-v0.2-character-master.png");
+    background-size:400% 100%;
+  }
+  .v3-origin-card h3{margin:0 0 5px;font-size:20px;}
+  .v3-origin-tag{font-size:12px;font-weight:1000;color:#8f4936;margin-bottom:10px;}
+  .v3-origin-card p{font-size:13px;line-height:1.6;margin:0;color:#76524b;}
+  .v3-origin-whisper{
+    display:block;margin:8px 0 0;
+    font-size:11px;line-height:1.45;
+    color:#8f4f3c;font-weight:900;font-style:normal;
+  }
+  .v3-origin-card.is-solo .v3-origin-whisper{color:#6d5940;}
+  .v3-start-mark{
+    position:static;align-self:flex-end;margin-top:auto;padding:7px 10px;
+    border:2px solid rgba(113,65,47,.75);
+    background:#ffe2a4;
+    box-shadow:0 3px 0 rgba(113,65,47,.28);
+    font-size:11px;font-weight:1000;color:#7d432f;
+  }
+  .v3-origin-card:hover .v3-start-mark{background:#b8613c;color:#fff6d5;transform:translateY(-1px);}
+  #v3-confirm{align-items:center;justify-content:center;padding:28px;background:rgba(49,25,31,.3);}
+  .v3-confirm-card{
+    width:min(620px,calc(100vw - 54px));
+    padding:25px 30px 29px;
+    display:grid;
+    grid-template-columns:190px minmax(0,1fr);
+    gap:24px;
+    align-items:center;
+    background:rgba(255,248,226,.97);
+  }
+  .v3-confirm-scene{
+    position:relative;
+    width:190px;
+    height:250px;
+    overflow:hidden;
+    border:3px solid #663a33;
+    background-image:url("./温馨像素艺术室内夜景合集.png");
+    background-size:auto 400%;
+    background-repeat:no-repeat;
+    image-rendering:pixelated;
+    box-shadow:inset 0 0 0 3px rgba(255,235,192,.52),4px 5px 0 rgba(73,35,36,.18);
+  }
+  .v3-confirm-env-chen{background-position:100% 0;}
+  .v3-confirm-env-shen{background-position:0 33.333%;}
+  .v3-confirm-env-zhou{background-position:33.333% 0;}
+  .v3-confirm-env-solo{background-position:66.667% 0;}
+  .v3-confirm-person{
+    position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);
+    width:150px;height:200px;filter:drop-shadow(6px 8px 0 rgba(76,39,38,.28));
+  }
+  .v3-confirm-copy h2{margin:5px 0 4px;font-size:29px;color:#573033;}
+  .v3-confirm-tag{font-size:12px;color:#a45942;font-weight:900;margin-bottom:13px;}
+  .v3-confirm-quote{margin:0 0 17px;padding:12px 14px;background:#fff1d2;border-left:4px solid #d07855;color:#6d4946;font-size:14px;line-height:1.75;font-weight:800;}
+  .v3-confirm-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* 主游戏 */
+  #v3-game{
+    flex-direction:column;
+    background-image:linear-gradient(rgba(44,22,28,.16),rgba(44,22,28,.34)),url("./pixel-life-town-v1.png");
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-position:center;
+    transition:background-position .5s,filter .5s;
+  }
+  #v3-game[data-scene="date"]{background-position:left bottom;}
+  #v3-game[data-scene="life"]{background-position:right 36%;}
+  #v3-game[data-scene="clinic"]{background-position:57% 72%;}
+  #v3-game[data-scene="family"]{background-position:78% 40%;}
+  #v3-game[data-scene="path"]{background-position:center 65%;}
+  #v3-game[data-scene="arrival"]{background-position:35% bottom;}
+  .v3-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:10px 18px;
+    background:rgba(70,37,35,.92);
+    border-bottom:4px solid #d4894d;
+    color:#fff1cf;
+    box-shadow:0 5px 0 rgba(50,25,28,.3);
+  }
+  .v3-player{display:flex;align-items:center;gap:10px;min-width:185px;}
+  .v3-avatar{
+    width:48px;height:48px;display:grid;place-items:center;
+    border:3px solid #f3bf67;background:#c56d58;color:#fff5d8;
+    box-shadow:inset 0 0 0 2px #6f3c35;font-size:24px;font-weight:1000;
+  }
+  .v3-player-name{font-size:14px;font-weight:900;}
+  .v3-player-route{font-size:11px;color:#efcba7;margin-top:2px;}
+  .v3-calendar{text-align:center;}
+  .v3-calendar strong{display:block;font-size:16px;}
+  .v3-calendar span{font-size:11px;color:#efcba7;}
+  .v3-menu-btn{width:44px;height:44px;padding:0;min-height:0;font-size:20px;}
+  .v3-meters{
+    display:grid;
+    grid-template-columns:repeat(8,minmax(70px,1fr));
+    gap:8px;
+    padding:12px 16px 8px;
+    background:rgba(255,244,216,.9);
+    border-bottom:3px solid rgba(103,55,46,.72);
+  }
+  .v3-meter{background:#fffaf0;border:2px solid #724237;padding:7px 8px;box-shadow:inset 0 0 0 2px #efcf91;}
+  .v3-meter-head{display:flex;justify-content:space-between;gap:5px;font-size:11px;font-weight:900;margin-bottom:5px;}
+  .v3-meter-track{height:8px;background:#d9c8ad;border:1px solid #6f4037;overflow:hidden;}
+  .v3-meter-fill{height:100%;background:var(--meter,#d8796e);width:50%;transition:width .35s;}
+  .v3-game-center{
+    flex:1;
+    display:grid;
+    grid-template-columns:minmax(220px,.72fr) minmax(420px,1.45fr) minmax(210px,.65fr);
+    gap:18px;
+    padding:20px;
+    align-items:center;
+  }
+  .v3-side-card{padding:16px;background:rgba(255,248,226,.94);}
+  .v3-side-card h3{margin:5px 0 11px;font-size:18px;}
+  .v3-side-card p{margin:0;color:#7d574d;font-size:13px;line-height:1.7;}
+  .v3-path-list{display:grid;gap:8px;margin-top:12px;}
+  .v3-path-step{display:flex;align-items:center;gap:8px;color:#947165;font-size:12px;font-weight:800;}
+  .v3-path-step b{width:20px;height:20px;display:grid;place-items:center;background:#d8c2a6;border:2px solid #765046;color:white;font-size:10px;}
+  .v3-path-step.is-done{color:#5f7f55;}
+  .v3-path-step.is-done b{background:#76a96c;}
+  .v3-path-step.is-now{color:#b35442;}
+  .v3-path-step.is-now b{background:#d97862;}
+  .v3-event{padding:22px 24px 24px;background:rgba(255,249,232,.97);}
+  .v3-event-scene{display:flex;align-items:center;gap:12px;border-bottom:2px dashed #d4aa73;padding-bottom:12px;margin-bottom:14px;}
+  .v3-scene-face{
+    width:105px;height:140px;flex:0 0 auto;
+    filter:drop-shadow(4px 5px 0 rgba(76,39,38,.2));
+  }
+  .v3-event-stage{font-size:11px;color:#a05d47;font-weight:900;letter-spacing:.12em;}
+  .v3-event h2{font-size:25px;margin:4px 0 0;color:#512e33;}
+  .v3-event-copy{min-height:78px;font-size:15px;line-height:1.85;color:#69474a;margin:0 0 17px;}
+  .v3-event-echo{
+    display:none;
+    margin:-6px 0 14px;
+    padding:8px 10px;
+    border-left:4px solid #c87855;
+    background:#f7e2bf;
+    color:#7c5145;
+    font-size:11px;
+    line-height:1.65;
+    font-weight:800;
+  }
+  .v3-event-echo.is-show{display:block;}
+  .v3-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;}
+  .v3-choice-grid.is-many{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .v3-choice{
+    min-height:102px;
+    text-align:left;
+    display:grid;
+    grid-template-columns:90px minmax(0,1fr);
+    align-items:center;
+    gap:10px;
+    padding:8px 12px 8px 8px;
+  }
+  .v3-choice-copy{display:flex;min-width:0;flex-direction:column;justify-content:center;}
+  .v3-choice strong{font-size:14px;line-height:1.35;}
+  .v3-choice small{font-size:10px;opacity:.82;margin-top:4px;font-weight:700;letter-spacing:0;line-height:1.45;}
+  .v3-choice:disabled{
+    cursor:not-allowed;
+    filter:grayscale(.72) brightness(.82);
+    opacity:.62;
+    transform:none;
+    box-shadow:inset 0 0 0 3px #c1aa87,0 5px 0 #65504a;
+  }
+  .v3-choice-art{
+    width:84px;
+    height:84px;
+    position:relative;
+    overflow:hidden;
+    border:2px solid #5d3430;
+    background-image:url("./pixel-event-atlas-v1.png");
+    background-size:400% 400%;
+    background-repeat:no-repeat;
+    box-shadow:inset 0 0 0 2px rgba(255,236,193,.55);
+    image-rendering:pixelated;
+  }
+  .v3-choice-art::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:1;
+    background:linear-gradient(180deg,rgba(255,234,192,.04),rgba(72,35,37,.22));
+  }
+  .v3-choice-art.v3-action-icon{
+    display:grid;
+    place-items:center;
+    background:linear-gradient(180deg,rgba(255,238,183,.95),rgba(224,151,80,.96));
+    color:#663724;
+    font-family:"Songti SC","STSong","PingFang SC",serif;
+    font-size:27px;
+    font-weight:1000;
+    line-height:1;
+    text-shadow:0 2px 0 rgba(255,245,204,.7);
+  }
+  .v3-choice-art.v3-action-icon::before{content:attr(data-icon);position:relative;z-index:2;}
+  .v3-choice-art.v3-action-icon[data-tone="boundary"]{background:linear-gradient(#ffe4a1,#d88b49);color:#69402d;}
+  .v3-choice-art.v3-action-icon[data-tone="love"]{background:linear-gradient(#ffd1c0,#da7a73);color:#7d3541;}
+  .v3-choice-art.v3-action-icon[data-tone="finance"]{background:linear-gradient(#ffe7a0,#c9963f);color:#674719;}
+  .v3-choice-art.v3-action-icon[data-tone="medical"]{background:linear-gradient(#d8edf0,#78aeb5);color:#275761;}
+  .v3-choice-art.v3-action-icon[data-tone="support"]{background:linear-gradient(#e0edbc,#8eb06a);color:#355b35;}
+  .v3-choice-art.v3-action-icon[data-tone="plan"]{background:linear-gradient(#e4d9ef,#9d82b4);color:#4f3a67;}
+  .v3-choice-art.v3-action-icon[data-tone="wait"]{background:linear-gradient(#e5dfd8,#a99a8f);color:#554943;}
+  .v3-choice-art.v3-action-icon[data-tone="exit"]{background:linear-gradient(#ecd0c4,#a66d67);color:#6a3034;}
+  .v3-choice-art.v3-choice-character{
+    background-color:#e5b06a;
+    background-image:url("./visual-iterations/visual-v0.2-character-master.png");
+    background-size:400% 100%;
+    background-repeat:no-repeat;
+  }
+  .v3-atlas-0{background-position:0 0;}
+  .v3-atlas-1{background-position:33.333% 0;}
+  .v3-atlas-2{background-position:66.667% 0;}
+  .v3-atlas-3{background-position:100% 0;}
+  .v3-atlas-4{background-position:0 33.333%;}
+  .v3-atlas-5{background-position:33.333% 33.333%;}
+  .v3-atlas-6{background-position:66.667% 33.333%;}
+  .v3-atlas-7{background-position:100% 33.333%;}
+  .v3-atlas-8{background-position:0 66.667%;}
+  .v3-atlas-9{background-position:33.333% 66.667%;}
+  .v3-atlas-10{background-position:66.667% 66.667%;}
+  .v3-atlas-11{background-position:100% 66.667%;}
+  .v3-atlas-12{background-position:0 100%;}
+  .v3-atlas-13{background-position:33.333% 100%;}
+  .v3-atlas-14{background-position:66.667% 100%;}
+  .v3-atlas-15{background-position:100% 100%;}
+  .v3-event-illustration{
+    width:100%;
+    height:auto;
+    aspect-ratio:2/1;
+    margin:0 auto 14px;
+    border:3px solid #663a33;
+    background-image:url("./pixel-event-atlas-v1.png");
+    background-size:400% 400%;
+    background-repeat:no-repeat;
+    image-rendering:pixelated;
+    box-shadow:inset 0 0 0 3px rgba(255,235,192,.52),4px 5px 0 rgba(73,35,36,.18);
+  }
+  .v3-story-plan{background-image:url("./温馨家庭规划与医护生活.png");background-size:300% 400%;}
+  .v3-story-nine{background-image:url("./温暖生活的九个片段.png");background-size:300% 400%;}
+  .v3-story-moments{background-image:url("./温馨生活点滴.png");background-size:300% 400%;}
+  .v3-story-collage{background-image:url("./温馨家庭生活的像素拼贴.png");background-size:300% 400%;}
+  .v3-wide-0{background-position:0 0;}
+  .v3-wide-1{background-position:50% 0;}
+  .v3-wide-2{background-position:100% 0;}
+  .v3-wide-3{background-position:0 33.333%;}
+  .v3-wide-4{background-position:50% 33.333%;}
+  .v3-wide-5{background-position:100% 33.333%;}
+  .v3-wide-6{background-position:0 66.667%;}
+  .v3-wide-7{background-position:50% 66.667%;}
+  .v3-wide-8{background-position:100% 66.667%;}
+  .v3-wide-9{background-position:0 100%;}
+  .v3-wide-10{background-position:50% 100%;}
+  .v3-wide-11{background-position:100% 100%;}
+  .v3-story-plan.v3-wide-3,.v3-story-plan.v3-wide-4,.v3-story-plan.v3-wide-5{background-size:335% auto;background-position-y:34.9%;}
+  .v3-story-plan.v3-wide-3{background-position-x:2.5%;}
+  .v3-story-plan.v3-wide-4{background-position-x:50%;}
+  .v3-story-plan.v3-wide-5{background-position-x:97.5%;}
+  .v3-story-nine.v3-wide-3,.v3-story-nine.v3-wide-4,.v3-story-nine.v3-wide-5{background-size:360% auto;background-position-y:36%;}
+  .v3-story-nine.v3-wide-3{background-position-x:3.8%;}
+  .v3-story-nine.v3-wide-4{background-position-x:50%;}
+  .v3-story-nine.v3-wide-5{background-position-x:96.2%;}
+  .v3-story-moments.v3-wide-3,.v3-story-moments.v3-wide-4,.v3-story-moments.v3-wide-5{background-size:330% auto;background-position-y:34.4%;}
+  .v3-story-moments.v3-wide-3{background-position-x:2.2%;}
+  .v3-story-moments.v3-wide-4{background-position-x:50%;}
+  .v3-story-moments.v3-wide-5{background-position-x:97.8%;}
+  .v3-story-collage.v3-wide-3,.v3-story-collage.v3-wide-4,.v3-story-collage.v3-wide-5{background-position-y:38%;}
+  .v3-story-plan.v3-wide-6,.v3-story-plan.v3-wide-7,.v3-story-plan.v3-wide-8{background-size:335% auto;background-position-y:64.9%;}
+  .v3-story-plan.v3-wide-6{background-position-x:2.5%;}
+  .v3-story-plan.v3-wide-7{background-position-x:50%;}
+  .v3-story-plan.v3-wide-8{background-position-x:97.5%;}
+  .v3-story-moments.v3-wide-6,.v3-story-moments.v3-wide-7,.v3-story-moments.v3-wide-8{background-size:330% auto;background-position-y:65.1%;}
+  .v3-story-moments.v3-wide-6{background-position-x:2.2%;}
+  .v3-story-moments.v3-wide-7{background-position-x:50%;}
+  .v3-story-moments.v3-wide-8{background-position-x:97.8%;}
+  .v3-story-collage.v3-wide-6,
+  .v3-story-collage.v3-wide-7,
+  .v3-story-collage.v3-wide-8{
+    background-size:367% auto;
+    background-position-y:70%;
+  }
+  .v3-story-collage.v3-wide-6{background-position-x:4.2%;}
+  .v3-story-collage.v3-wide-7{background-position-x:50%;}
+  .v3-story-collage.v3-wide-8{background-position-x:95.8%;}
+  .v3-story-nine.v3-wide-6,
+  .v3-story-nine.v3-wide-7,
+  .v3-story-nine.v3-wide-8{
+    background-size:350% auto;
+    background-position-y:64.4%;
+  }
+  .v3-story-nine.v3-wide-6{background-position-x:3.3%;}
+  .v3-story-nine.v3-wide-7{background-position-x:50%;}
+  .v3-story-nine.v3-wide-8{background-position-x:96.7%;}
+  .v3-story-collage.v3-wide-9,.v3-story-collage.v3-wide-10,.v3-story-collage.v3-wide-11{background-size:345% auto;background-position-y:98.7%;}
+  .v3-story-collage.v3-wide-9{background-position-x:3.1%;}
+  .v3-story-collage.v3-wide-10{background-position-x:50%;}
+  .v3-story-collage.v3-wide-11{background-position-x:96.9%;}
+  .v3-choice-mini{
+    position:absolute;
+    z-index:2;
+    bottom:-3px;
+    width:39px;
+    height:52px;
+    filter:drop-shadow(2px 2px 0 rgba(66,31,32,.32));
+  }
+  .v3-choice-mini-a{left:5px;}
+  .v3-choice-mini-b{right:3px;}
+  .v3-choice-mini-only{left:20px;}
+  .v3-choice-prop{
+    position:absolute;
+    z-index:4;
+    left:50%;
+    top:7px;
+    width:22px;
+    height:22px;
+    transform:translateX(-50%);
+    filter:drop-shadow(2px 2px 0 rgba(63,31,31,.32));
+  }
+  .v3-prop-key{width:13px;height:13px;border:4px solid #f3c654;border-radius:50%;background:transparent;}
+  .v3-prop-key::after{content:"";position:absolute;width:18px;height:5px;background:#f3c654;left:9px;top:8px;box-shadow:10px 4px 0 #f3c654;}
+  .v3-prop-calendar{background:#fff0cf;border:3px solid #6a3b35;}
+  .v3-prop-calendar::before{content:"";position:absolute;left:0;right:0;top:3px;height:5px;background:#d76d61;}
+  .v3-prop-calendar::after{content:"";position:absolute;left:3px;right:3px;top:11px;bottom:3px;background:repeating-linear-gradient(90deg,#8d6355 0 2px,transparent 2px 6px);}
+  .v3-prop-coin{width:18px;height:18px;border-radius:50%;background:#f4c453;border:3px solid #86502e;box-shadow:7px 4px 0 #c98739,7px 4px 0 3px #86502e;}
+  .v3-prop-report{background:#fff4d9;border:3px solid #6b4038;}
+  .v3-prop-report::before,.v3-prop-report::after{content:"";position:absolute;background:#d96863;left:5px;right:5px;top:8px;height:4px;}
+  .v3-prop-report::after{left:9px;right:auto;top:4px;width:4px;height:12px;}
+  .v3-prop-home{background:#e99a67;border:3px solid #633a34;clip-path:polygon(50% 0,100% 42%,88% 42%,88% 100%,12% 100%,12% 42%,0 42%);}
+  .v3-prop-network{width:8px;height:8px;border-radius:50%;background:#f2c75b;box-shadow:-10px 12px 0 #7db07b,10px 12px 0 #d77c70;}
+  .v3-prop-network::before,.v3-prop-network::after{content:"";position:absolute;width:15px;height:3px;background:#fff0c5;top:8px;transform-origin:left center;}
+  .v3-prop-network::before{left:-7px;transform:rotate(50deg);}
+  .v3-prop-network::after{left:2px;transform:rotate(130deg);}
+  .v3-prop-contract{background:repeating-linear-gradient(0deg,#fff2d3 0 4px,#a77b69 4px 6px);border:3px solid #654038;}
+  .v3-prop-briefcase{width:24px;height:17px;top:12px;background:#9a5b3a;border:3px solid #5b342f;}
+  .v3-prop-briefcase::before{content:"";position:absolute;left:6px;top:-8px;width:8px;height:6px;border:3px solid #5b342f;}
+  .v3-prop-baby{width:22px;height:26px;background:#efa5a1;border:3px solid #653934;border-radius:48% 48% 35% 35%;}
+  .v3-prop-baby::before{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd0aa;border:2px solid #754139;left:4px;top:3px;}
+  .v3-prop-sprout{width:6px;height:20px;background:#6c9d61;top:10px;}
+  .v3-prop-sprout::before,.v3-prop-sprout::after{content:"";position:absolute;width:12px;height:8px;background:#83b66e;top:0;}
+  .v3-prop-sprout::before{right:3px;border-radius:10px 0 10px 0;}
+  .v3-prop-sprout::after{left:3px;border-radius:0 10px 0 10px;}
+  .v3-prop-heart{width:17px;height:17px;background:#df7778;transform:translateX(-50%) rotate(45deg);top:10px;}
+  .v3-prop-heart::before,.v3-prop-heart::after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:#df7778;}
+  .v3-prop-heart::before{left:-9px;}
+  .v3-prop-heart::after{top:-9px;}
+  .v3-log{padding:16px;background:rgba(255,248,226,.94);}
+  .v3-log h3{margin:5px 0 10px;font-size:17px;}
+  .v3-log-item{border-left:4px solid #d28a58;padding:7px 0 7px 9px;font-size:12px;line-height:1.55;color:#75534e;}
+  .v3-log-item+ .v3-log-item{margin-top:7px;}
+  .v3-hint{font-size:11px;color:#a17764;margin-top:13px;line-height:1.6;}
+  .v3-bottom-path{padding:8px 16px 12px;background:rgba(65,34,34,.9);color:#ffe7bd;text-align:center;font-size:12px;font-weight:900;letter-spacing:.08em;}
+  .v3-quickbar{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    padding:7px 12px;
+    background:rgba(255,241,207,.94);
+    border-top:3px solid #744238;
+  }
+  .v3-quickbar button{
+    border:2px solid #6f4036;
+    background:#fff8e5;
+    color:#714638;
+    padding:6px 12px;
+    font-size:11px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 3px 0 #b6764d;
+  }
+  .v3-quickbar button:active{transform:translateY(2px);box-shadow:0 1px 0 #b6764d;}
+  .v3-toast{
+    position:fixed;z-index:80;left:auto;right:18px;top:18px;bottom:auto;transform:translateY(-14px);
+    background:#4a2b30;color:#fff1d3;border:3px solid #e6a55e;padding:10px 16px;
+    max-width:min(330px,calc(100vw - 36px));opacity:0;pointer-events:none;transition:.2s;font-size:13px;font-weight:900;box-shadow:0 5px 0 rgba(42,20,25,.35);
+  }
+  .v3-toast.is-show{opacity:1;transform:translateY(0);}
+
+  /* 结局和说明 */
+  #v3-ending,#v3-rules{align-items:center;justify-content:center;padding:26px;background:rgba(42,22,28,.34);}
+  .v3-ending-card,.v3-rules-card{width:min(720px,calc(100vw - 54px));padding:30px 38px;background:rgba(255,249,231,.97);text-align:center;}
+  .v3-baby-mark{
+    width:106px;height:84px;margin:0 auto 17px;display:grid;place-items:center;
+    background:#f0b19f;border:4px solid #663932;box-shadow:inset 0 0 0 5px #ffd6b8,7px 7px 0 rgba(72,35,36,.25);
+    font-size:42px;font-weight:1000;color:#fff4d7;text-shadow:3px 3px 0 #9c594f;
+  }
+  .v3-ending-scene{
+    height:180px;
+    max-width:560px;
+    margin:0 auto 18px;
+    position:relative;
+    overflow:hidden;
+    border:4px solid #623731;
+    background-color:#f3c98e;
+    box-shadow:inset 0 0 0 4px #eeb36b,6px 7px 0 rgba(72,35,36,.25);
+  }
+  .v3-ending-scene.v3-event-illustration{
+    width:min(100%,560px);
+    height:auto;
+    aspect-ratio:2/1;
+    background-repeat:no-repeat;
+  }
+  .v3-retirement-scene{
+    background-image:url("./pixel-life-town-v1.png");
+    background-size:cover;
+    background-position:center 38%;
+  }
+  .v3-ending-person{position:absolute;bottom:-5px;width:105px;height:140px;z-index:2;filter:drop-shadow(4px 4px 0 rgba(65,31,31,.25));}
+  .v3-ending-person.is-left{left:12%;}
+  .v3-ending-person.is-right{right:12%;}
+  .v3-child-sprite{
+    position:absolute;
+    z-index:3;
+    left:50%;
+    bottom:16px;
+    width:52px;
+    height:58px;
+    transform:translateX(-50%);
+    background:#f0a8a1;
+    border:3px solid #5f3432;
+    box-shadow:inset 0 0 0 3px #ffd8b6,3px 4px 0 rgba(68,32,31,.25);
+    clip-path:polygon(8px 0,calc(100% - 8px) 0,calc(100% - 8px) 5px,100% 5px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px),0 6px,8px 6px);
+  }
+  .v3-child-sprite::before{
+    content:"";
+    position:absolute;
+    width:24px;height:24px;border-radius:50%;
+    left:11px;top:7px;background:#ffd2ad;border:3px solid #6a3934;
+  }
+  .v3-child-sprite::after{
+    content:"";
+    position:absolute;
+    width:23px;height:8px;
+    left:12px;bottom:8px;
+    background:#fff1cf;border:2px solid #8f5548;
+  }
+  .v3-ending-card h1{font-size:36px;color:#5a3033;margin:5px 0 8px;}
+  .v3-ending-route{display:inline-block;background:#f0c477;border:2px solid #704036;padding:6px 12px;font-size:12px;font-weight:900;margin-bottom:15px;}
+  .v3-ending-card p{font-size:15px;line-height:1.85;color:#6f4b49;max-width:570px;margin:0 auto 19px;}
+  .v3-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0 22px;}
+  .v3-summary div{border:2px solid #825044;background:#fff4da;padding:9px 5px;}
+  .v3-summary b{display:block;font-size:20px;color:#b05d47;}
+  .v3-summary span{font-size:11px;color:#805e53;}
+  .v3-rules-card{text-align:left;}
+  .v3-rules-card h2{text-align:center;margin:0 0 18px;font-size:28px;}
+  .v3-rules-card ol{padding-left:22px;color:#6d4b48;line-height:1.85;font-size:14px;}
+  .v3-rules-card .v3-btn{display:block;margin:20px auto 0;}
+  .v3-top-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+
+  @media(min-width:641px){
+    .v3-choice-grid.is-many .v3-choice{
+      min-height:98px;
+      grid-template-columns:58px minmax(0,1fr);
+      gap:8px;
+      padding:8px;
+    }
+    .v3-choice-grid.is-many .v3-choice-art{width:54px;height:54px;}
+    .v3-choice-grid.is-many .v3-choice strong{font-size:13px;}
+  }
+  @media(min-width:641px) and (max-height:780px){
+    #v3-game .v3-game-center{padding-top:10px;padding-bottom:18px;}
+    #v3-game .v3-event{padding:14px 18px 16px;}
+    #v3-game .v3-event-scene{min-height:78px;margin-bottom:8px;padding-bottom:7px;}
+    #v3-game .v3-scene-face.v3-sprite-solo,
+    #v3-game .v3-scene-face.v3-sprite-chen,
+    #v3-game .v3-scene-face.v3-sprite-shen,
+    #v3-game .v3-scene-face.v3-sprite-zhou{width:46px;height:86px;}
+    #v3-game .v3-event h2{font-size:23px;}
+    #v3-game .v3-event-illustration{width:min(100%,560px);margin-bottom:8px;}
+    #v3-game .v3-event-copy{margin-bottom:8px;font-size:13px;line-height:1.52;}
+    #v3-game .v3-choice{min-height:86px;}
+    #v3-game .v3-choice-grid.is-many .v3-choice{min-height:76px;}
+  }
+  @media(max-width:900px){
+    .v3-origin-grid{grid-template-columns:repeat(2,1fr);}
+    .v3-game-center{grid-template-columns:220px minmax(0,1fr);}
+    .v3-log{display:none;}
+    .v3-meters{grid-template-columns:repeat(4,1fr);}
+  }
+  @media(max-width:640px){
+    #v3-home,#v3-origin,#v3-ending,#v3-rules{padding:16px;}
+    .v3-home-card{padding:27px 20px;width:calc(100vw - 48px);}
+    .v3-title{-webkit-text-stroke:5px #58302f;text-shadow:0 5px 0 #d77662,0 8px 0 #723c36;}
+    .v3-home-lineup{height:88px;margin-top:10px;}
+    .v3-home-person{width:60px;height:80px;margin:0 -2px;}
+    .v3-origin-shell{padding:19px 15px 24px;width:calc(100vw - 40px);}
+    .v3-origin-grid{grid-template-columns:1fr 1fr;gap:10px;}
+    .v3-origin-card{min-height:226px;padding:10px;}
+    .v3-portrait{width:105px;height:140px;}
+    .v3-origin-card p{font-size:11px;}
+    .v3-confirm-card{grid-template-columns:1fr;padding:20px;text-align:center;}
+    .v3-confirm-scene{width:min(100%,240px);height:210px;margin:0 auto;}
+    .v3-confirm-person{width:120px;height:160px;}
+    .v3-confirm-quote{text-align:left;}
+    .v3-confirm-actions{justify-content:center;}
+    .v3-topbar{padding:7px 10px;}
+    .v3-player{min-width:0;}
+    .v3-avatar{width:38px;height:38px;font-size:19px;}
+    .v3-calendar strong{font-size:13px;}
+    .v3-meters{padding:8px;gap:5px;}
+    .v3-meter{padding:5px;}
+    .v3-meter-head{font-size:9px;}
+    .v3-game-center{display:block;padding:12px;}
+    .v3-side-card{margin-bottom:12px;padding:12px;}
+    .v3-side-card p,.v3-side-card .v3-path-list{display:none;}
+    .v3-side-card h3{font-size:14px;margin:2px 0;}
+    .v3-event{padding:16px 15px 18px;}
+    .v3-scene-face{width:75px;height:100px;}
+    .v3-event h2{font-size:20px;}
+    .v3-event-copy{font-size:14px;min-height:0;}
+    .v3-choice-grid,.v3-choice-grid.is-many{grid-template-columns:1fr;}
+    .v3-choice{min-height:88px;grid-template-columns:72px minmax(0,1fr);}
+    .v3-choice-art{width:68px;height:68px;}
+    .v3-event-illustration{width:100%;height:auto;}
+    .v3-choice-mini{width:34px;height:46px;}
+    .v3-choice-mini-only{left:17px;}
+    .v3-bottom-path{padding-bottom:7px;}
+    .v3-quickbar{position:sticky;left:0;right:0;bottom:0;z-index:7;}
+    .v3-toast{top:10px;right:10px;max-width:calc(100vw - 20px);}
+    .v3-ending-card,.v3-rules-card{padding:24px 18px;width:calc(100vw - 52px);}
+    .v3-ending-scene{height:145px;}
+    .v3-ending-scene.v3-event-illustration{width:min(100%,300px);height:auto;}
+    .v3-ending-person{width:78px;height:104px;}
+    .v3-ending-person.is-left{left:6%;}
+    .v3-ending-person.is-right{right:6%;}
+  }
+
+  /* ========== V4 · 像素人生模拟器外壳 ========== */
+  :root{
+    --v4-wood-900:#3b2019;
+    --v4-wood-800:#5d321f;
+    --v4-wood-700:#85502c;
+    --v4-wood-500:#bd7940;
+    --v4-gold:#e9b45b;
+    --v4-paper:#f6dca5;
+    --v4-paper-light:#fff0c8;
+    --v4-ink:#4a2b20;
+  }
+  #v3-home{
+    background:
+      linear-gradient(rgba(40,20,17,.1),rgba(40,20,17,.34)),
+      url("./pixel-life-town-v1.png") center/cover;
+  }
+  .v3-home-card{
+    width:min(860px,calc(100vw - 48px));
+    padding:28px 46px 34px;
+    background:rgba(246,220,165,.91);
+  }
+  .v4-version-chip{
+    position:absolute;top:12px;right:18px;
+    padding:5px 9px;border:2px solid var(--v4-wood-800);
+    background:var(--v4-wood-900);color:#ffe7ad;
+    font:900 10px/1.2 ui-monospace,monospace;letter-spacing:.08em;
+  }
+  .v3-home-lineup{height:158px;margin-top:15px;}
+  .v3-home-person{width:72px;height:154px;}
+  .v3-home-actions .v3-btn:first-child{min-width:250px;}
+
+  #v3-origin{
+    background:
+      linear-gradient(rgba(52,26,20,.16),rgba(52,26,20,.36)),
+      url("./pixel-life-town-v1.png") center/cover;
+  }
+  .v3-origin-shell{
+    width:min(1180px,calc(100vw - 42px));
+    background:rgba(246,220,165,.94);
+  }
+  .v3-origin-card{
+    background:linear-gradient(#fff0c8,#efd29a);
+    border-color:var(--v4-wood-900);
+    box-shadow:inset 0 0 0 3px #f9e4b5,0 6px 0 var(--v4-wood-800);
+  }
+  .v3-origin-card:hover{background:#fff3cf;}
+  .v3-origin-card::before{background:#ffe7aa;box-shadow:0 2px 0 rgba(96,55,39,.18);}
+  .v3-origin-card .v3-portrait{width:112px;height:239px;}
+  .v3-origin-card.is-solo .v3-portrait{display:none;}
+  .v3-origin-card.is-solo:hover{background:#fff7dc;}
+
+  #v3-confirm{
+    background:
+      linear-gradient(rgba(45,22,19,.18),rgba(45,22,19,.38)),
+      url("./温馨像素艺术室内夜景合集.png") 66.667% 0/400% auto;
+  }
+  .v3-confirm-card{
+    width:min(980px,calc(100vw - 48px));
+    grid-template-columns:minmax(300px,.95fr) minmax(390px,1.05fr);
+    gap:28px;padding:28px;
+    background:rgba(246,220,165,.97);
+  }
+  .v3-confirm-scene{width:100%;height:440px;}
+  .v3-confirm-person{width:170px;height:363px;bottom:-12px;}
+  .v3-confirm-copy>h2{
+    margin:6px 0 8px;text-align:center;
+    font:900 30px/1.2 "Songti SC","STSong",serif;color:var(--v4-ink);
+  }
+  .v4-profile-sheet{
+    margin:14px 0;padding:12px 16px;
+    border:3px solid var(--v4-wood-800);
+    background:linear-gradient(#ffebba,#efd19a);
+    box-shadow:inset 0 0 0 3px rgba(255,248,214,.65);
+  }
+  .v4-profile-row{
+    min-height:41px;display:grid;grid-template-columns:92px 32px minmax(110px,1fr) 32px;
+    align-items:center;gap:6px;border-bottom:1px solid rgba(93,50,31,.32);
+    color:var(--v4-ink);font-size:13px;
+  }
+  .v4-profile-row:last-child{border-bottom:0;}
+  .v4-profile-row>span{font-weight:900;}
+  .v4-profile-row>b{text-align:center;font-size:14px;}
+  .v4-profile-row>button{
+    width:30px;height:28px;border:2px solid var(--v4-wood-800);
+    background:#f4c978;color:var(--v4-ink);font-size:20px;font-weight:900;cursor:pointer;
+    box-shadow:0 2px 0 var(--v4-wood-800);
+  }
+  .v4-profile-row>button:active{transform:translateY(2px);box-shadow:none;}
+
+  #v3-game{
+    min-height:100vh;
+    background:
+      linear-gradient(rgba(49,25,19,.08),rgba(49,25,19,.25)),
+      url("./pixel-life-town-v1.png") center/cover fixed;
+  }
+  .v3-topbar{
+    position:sticky;top:0;z-index:25;
+    border-bottom-color:var(--v4-gold);
+    background:linear-gradient(#633923,#3c211a);
+  }
+  .v3-avatar{border-radius:0;background:#b96f3f!important;}
+  .v3-calendar{
+    min-width:155px;padding:7px 13px;border:2px solid var(--v4-wood-900);
+    background:var(--v4-paper);color:var(--v4-ink);
+    box-shadow:inset 0 0 0 2px #fff0c8;
+  }
+  .v3-calendar span{color:#88522f;}
+  .v3-meters{
+    position:relative;z-index:8;
+    background:rgba(246,220,165,.96);
+    border-bottom-color:var(--v4-wood-800);
+  }
+  .v3-meter{
+    background:#ffedbf;border-color:var(--v4-wood-800);
+    box-shadow:inset 0 0 0 2px #f1c978;
+  }
+  .v4-town-nav{
+    position:relative;
+    display:grid;grid-template-columns:120px repeat(5,minmax(105px,1fr));
+    gap:10px;align-items:end;
+    min-height:148px;padding:62px 18px 16px;
+    border-bottom:4px solid var(--v4-wood-900);
+    background:
+      linear-gradient(rgba(255,226,167,.1),rgba(63,32,24,.35)),
+      url("./pixel-life-town-v1.png") center 54%/cover;
+    overflow:hidden;
+  }
+  .v4-map-title{
+    align-self:start;margin-top:-45px;padding:7px 10px;
+    border:3px solid var(--v4-wood-900);background:var(--v4-paper);
+    color:var(--v4-ink);font-weight:1000;text-align:center;
+    box-shadow:inset 0 0 0 2px #fff0c8,0 3px 0 var(--v4-wood-800);
+  }
+  .v4-town-nav button{
+    min-height:39px;padding:6px 9px;border:3px solid var(--v4-wood-900);
+    background:rgba(246,220,165,.95);color:var(--v4-ink);
+    font-weight:900;cursor:pointer;box-shadow:inset 0 0 0 2px #fff0c8,0 4px 0 var(--v4-wood-800);
+  }
+  .v4-town-nav button:hover,.v4-town-nav button.is-active{
+    color:#fff6d8;background:#a85d35;box-shadow:inset 0 0 0 2px #e8a45e,0 4px 0 #4a281d;
+  }
+  .v4-town-nav button.is-active::before{content:"◆ ";color:#ffd66e;}
+  .v3-game-center{
+    width:100%;max-width:1460px;margin:0 auto;
+    grid-template-columns:minmax(235px,.68fr) minmax(500px,1.55fr) minmax(245px,.72fr);
+    align-items:start;padding:20px 24px 28px;
+  }
+  .v3-side-card,.v3-log,.v3-event{
+    border-color:var(--v4-wood-900);
+    background:rgba(255,238,194,.97);
+  }
+  .v3-side-card::before{
+    content:"";display:block;width:100%;height:132px;margin:0 0 13px;
+    border:2px solid var(--v4-wood-800);
+    background:url("./温馨像素艺术室内夜景合集.png") 66.667% 0/400% auto no-repeat;
+    image-rendering:pixelated;
+  }
+  .v3-event{padding:20px 22px 24px;}
+  .v3-scene-face.v3-sprite-solo,.v3-scene-face.v3-sprite-chen,.v3-scene-face.v3-sprite-shen,.v3-scene-face.v3-sprite-zhou{
+    width:92px;height:92px;border-radius:18px;
+    background-color:#f0c985;
+    background-size:400% auto;
+    box-shadow:inset 0 0 0 3px #ffe6a9,0 5px 0 rgba(80,42,30,.28);
+    overflow:hidden;
+  }
+  .v3-event-scene{margin-bottom:12px;}
+  .v3-event-illustration{border-color:var(--v4-wood-900);}
+  .v3-choice{
+    border-color:var(--v4-wood-900);
+    background:linear-gradient(#bd7940,#92502e);
+  }
+  .v3-choice.v3-soft{background:linear-gradient(#f2c676,#c77e42);}
+  .v3-log{display:block!important;padding:16px;}
+  .v3-log h3{font-family:"Songti SC","STSong",serif;font-size:20px;}
+  .v4-inventory{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:16px;
+  }
+  .v4-inventory-item{
+    min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:6px;border:2px solid var(--v4-wood-800);background:#f9dfa7;text-align:center;
+    box-shadow:inset 0 0 0 2px rgba(255,244,207,.8);
+  }
+  .v4-inventory-item>b{
+    width:31px;height:31px;display:grid;place-items:center;margin-bottom:5px;
+    border:2px solid var(--v4-wood-800);background:#c97043;color:#fff6d5;font-size:15px;
+  }
+  .v4-inventory-item>span{font-size:10px;line-height:1.25;color:#69402f;font-weight:900;}
+  .v4-log-title{
+    margin:8px 0;padding:6px 8px;border-left:4px solid #a85d35;
+    background:#efd19a;font-size:12px;font-weight:900;color:var(--v4-ink);
+  }
+  .v3-log-item{font-size:11px;}
+  .v3-quickbar{
+    position:sticky;bottom:0;z-index:24;
+    padding:9px 12px;background:linear-gradient(#e9c27d,#bd7940);
+    border-top:4px solid var(--v4-wood-900);
+  }
+  .v3-quickbar button{
+    min-width:108px;min-height:42px;border:3px solid var(--v4-wood-900);
+    background:#f8dda5;box-shadow:inset 0 0 0 2px #fff0c8,0 3px 0 #71412b;
+  }
+  .v3-bottom-path{background:#3b2019;color:#ffe0a1;}
+  .v3-meter{
+    appearance:none;width:100%;color:var(--v4-ink);font:inherit;text-align:left;
+    cursor:pointer;transition:transform .12s,filter .12s;
+  }
+  .v3-meter:hover,.v3-meter:focus-visible{transform:translateY(-2px);filter:brightness(1.04);outline:3px solid #f0ad55;outline-offset:1px;}
+  .v3-quickbar button.is-active{color:#fff6d8;background:#8d4c2e;box-shadow:inset 0 0 0 2px #e8a45e,0 3px 0 #4a281d;}
+  .v4-inventory-item{appearance:none;color:inherit;font:inherit;cursor:pointer;}
+  .v4-inventory-item:hover,.v4-inventory-item:focus-visible{background:#ffeabd;outline:3px solid #c97043;outline-offset:1px;}
+
+  .v4-system-overlay{
+    position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;
+    padding:22px;background:rgba(36,18,16,.72);backdrop-filter:blur(3px);
+  }
+  .v4-system-overlay.is-open{display:flex;}
+  .v4-system-window{
+    width:min(820px,100%);max-height:min(760px,calc(100vh - 44px));display:flex;flex-direction:column;
+    overflow:hidden;background:var(--v4-paper-light);color:var(--v4-ink);
+    box-shadow:inset 0 0 0 4px #f8dfaa,0 14px 0 rgba(48,24,19,.48);
+  }
+  .v4-system-head{
+    display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+    padding:14px 16px;border-bottom:4px solid var(--v4-wood-800);
+    background:linear-gradient(#f1c879,#d8954e);
+  }
+  .v4-system-head .v3-kicker{grid-column:1;margin:0;color:#794027;}
+  .v4-system-head h2{grid-column:1;margin:2px 0 0;font:1000 25px/1.2 "Songti SC","STSong",serif;}
+  .v4-system-close{
+    grid-column:2;grid-row:1/3;width:42px;height:42px;border:3px solid var(--v4-wood-900);
+    background:#f8dda5;color:var(--v4-ink);font-size:24px;font-weight:1000;cursor:pointer;
+    box-shadow:inset 0 0 0 2px #fff0c8,0 3px 0 #71412b;
+  }
+  .v4-system-body{padding:18px;overflow:auto;overscroll-behavior:contain;}
+  .v4-panel-lead{margin:0 0 14px;color:#714737;font-size:14px;line-height:1.75;font-weight:800;}
+  .v4-panel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;}
+  .v4-panel-card{
+    padding:13px;border:3px solid var(--v4-wood-800);background:#f8dda5;
+    box-shadow:inset 0 0 0 2px rgba(255,243,207,.86);
+  }
+  .v4-panel-card.is-wide{grid-column:1/-1;}
+  .v4-panel-card.is-current{background:#ffe9ac;border-color:#a65332;}
+  .v4-panel-card.is-locked{filter:saturate(.55);opacity:.82;}
+  .v4-panel-card h3{margin:0 0 6px;font-size:15px;}
+  .v4-panel-card p{margin:0;color:#704c40;font-size:12px;line-height:1.65;}
+  .v4-panel-card small{display:block;margin-top:7px;color:#965438;font-size:11px;font-weight:900;}
+  .v4-panel-value{font:1000 34px/1 ui-monospace,monospace;color:#9f4f34;}
+  .v4-panel-status{
+    display:inline-flex;margin:0 0 9px;padding:4px 8px;border:2px solid var(--v4-wood-800);
+    background:#ffe3a1;font-size:11px;font-weight:1000;
+  }
+  .v4-panel-status.is-danger{background:#bd5b4f;color:#fff5d7;}
+  .v4-panel-status.is-good{background:#6d9b67;color:#fff8dc;}
+  .v4-panel-meter{height:16px;margin:9px 0 12px;border:2px solid var(--v4-wood-800);background:#d6b988;overflow:hidden;}
+  .v4-panel-meter>i{display:block;height:100%;background:var(--panel-meter,#c97043);}
+  .v4-detail-list{display:grid;gap:7px;margin:0;padding:0;list-style:none;}
+  .v4-detail-list li{padding:8px 10px;border-left:4px solid #b8673d;background:#efd19a;font-size:12px;line-height:1.55;}
+  .v4-history-list{display:grid;gap:10px;}
+  .v4-history-item{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;}
+  .v4-history-index{
+    width:36px;height:36px;display:grid;place-items:center;border:2px solid var(--v4-wood-800);
+    background:#b9633b;color:#fff4d0;font:1000 12px/1 ui-monospace,monospace;
+  }
+  .v4-history-copy{padding:9px 11px;border:2px solid #9a6240;background:#f7dda8;}
+  .v4-history-copy b{display:block;margin-bottom:4px;font-size:13px;}
+  .v4-history-copy span{display:block;color:#744b3c;font-size:11px;line-height:1.55;}
+  .v4-panel-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px;}
+  .v4-panel-actions .v3-btn{min-height:40px;padding:9px 14px;font-size:12px;}
+  body.v4-panel-open{overflow:hidden;}
+
+  /* ========== V5 · 选择有回声 ========== */
+  .v5-feedback-overlay{
+    position:fixed;inset:0;z-index:95;display:none;
+    align-items:center;justify-content:center;padding:22px;
+    background:rgba(35,17,20,.78);backdrop-filter:blur(5px);
+  }
+  .v5-feedback-overlay.is-open{display:flex;}
+  .v5-feedback-card{
+    width:min(650px,100%);padding:22px 24px 24px;
+    background:var(--v4-paper-light);color:var(--v4-ink);
+    animation:v5FeedbackIn .22s ease-out both;
+  }
+  @keyframes v5FeedbackIn{
+    from{opacity:0;transform:translateY(14px) scale(.98);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .v5-feedback-head{
+    display:grid;grid-template-columns:108px minmax(0,1fr);
+    gap:14px;align-items:center;padding-bottom:13px;
+    border-bottom:2px dashed #c8945c;
+  }
+  .v5-feedback-face{
+    width:66px;height:141px;justify-self:center;
+    filter:drop-shadow(4px 5px 0 rgba(76,39,38,.2));
+  }
+  .v5-feedback-face.v3-sprite-doctor,.v5-feedback-face.v3-sprite-family,
+  .v5-feedback-face.v3-sprite-friend,.v5-feedback-face.v3-sprite-social{
+    width:96px;height:128px;
+  }
+  .v5-feedback-head h2{
+    margin:4px 0 0;
+    font:1000 23px/1.25 "Songti SC","STSong",serif;
+    color:#552f2b;
+  }
+  .v5-feedback-thinking{
+    display:flex;align-items:center;gap:10px;
+    min-height:116px;padding:22px 6px;
+    color:#84584b;font-weight:900;
+  }
+  .v5-feedback-dots{display:inline-flex;gap:5px;}
+  .v5-feedback-dots i{
+    width:7px;height:7px;border-radius:50%;
+    background:#b96a47;animation:v5Dot 1s infinite ease-in-out;
+  }
+  .v5-feedback-dots i:nth-child(2){animation-delay:.14s;}
+  .v5-feedback-dots i:nth-child(3){animation-delay:.28s;}
+  @keyframes v5Dot{0%,60%,100%{transform:translateY(0);opacity:.35;}30%{transform:translateY(-5px);opacity:1;}}
+  .v5-feedback-result{display:none;padding-top:16px;}
+  .v5-feedback-result.is-ready{display:block;animation:v5ResultIn .2s ease-out both;}
+  @keyframes v5ResultIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .v5-feedback-response{
+    position:relative;margin:0;padding:15px 17px;
+    border:3px solid var(--v4-wood-800);
+    background:#fff2ca;color:#573832;
+    font-size:15px;line-height:1.8;font-weight:800;
+    box-shadow:inset 0 0 0 2px rgba(255,255,230,.8);
+  }
+  .v5-feedback-response::before{
+    content:"";position:absolute;left:22px;top:-10px;
+    width:16px;height:16px;transform:rotate(45deg);
+    border-left:3px solid var(--v4-wood-800);border-top:3px solid var(--v4-wood-800);
+    background:#fff2ca;
+  }
+  .v5-feedback-deltas{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0 11px;}
+  .v5-delta-chip{
+    padding:6px 9px;border:2px solid var(--v4-wood-800);
+    background:#efd19a;color:#68402f;
+    font-size:12px;font-weight:1000;
+    box-shadow:0 2px 0 rgba(93,50,31,.35);
+  }
+  .v5-delta-chip.is-positive{background:#cfe0b6;color:#34542e;}
+  .v5-delta-chip.is-negative{background:#efb6a7;color:#75362f;}
+  .v5-feedback-memory{
+    margin:0 0 15px;padding:9px 11px;
+    border-left:5px solid #b86142;background:#efd19a;
+    color:#714436;font-size:12px;line-height:1.55;font-weight:900;
+  }
+  .v5-feedback-continue{width:100%;}
+  body.v5-feedback-open{overflow:hidden;}
+  .v3-meter.is-gain{animation:v5MeterGain .72s ease-out 2;}
+  .v3-meter.is-loss{animation:v5MeterLoss .72s ease-out 2;}
+  @keyframes v5MeterGain{50%{transform:translateY(-2px);filter:brightness(1.15);box-shadow:0 0 0 4px rgba(108,159,91,.42);}}
+  @keyframes v5MeterLoss{50%{transform:translateY(-2px);filter:brightness(.92);box-shadow:0 0 0 4px rgba(190,83,71,.42);}}
+
+  @media(max-width:1100px){
+    .v3-game-center{grid-template-columns:220px minmax(460px,1fr);}
+    .v3-log{grid-column:1/-1;}
+    .v4-inventory{grid-template-columns:repeat(4,1fr);}
+  }
+  @media(max-width:760px){
+    .v3-home-card{padding:25px 18px 28px;}
+    .v4-version-chip{position:static;display:inline-block;margin-bottom:8px;}
+    .v3-home-lineup{height:98px;}
+    .v3-home-person{width:48px;height:102px;}
+    .v3-origin-card .v3-portrait{width:84px;height:179px;}
+    .v3-confirm-card{grid-template-columns:1fr;width:calc(100vw - 36px);padding:18px;}
+    .v3-confirm-scene{height:230px;}
+    .v3-confirm-person{width:105px;height:224px;}
+    .v4-profile-row{grid-template-columns:78px 30px minmax(100px,1fr) 30px;}
+    .v4-town-nav{
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:6px;min-height:0;padding:46px 10px 10px;
+      overflow:visible;align-items:stretch;
+    }
+    .v4-map-title{
+      position:absolute;left:10px;top:8px;z-index:2;
+      margin:0;padding:5px 9px;font-size:12px;
+    }
+    .v4-town-nav button{
+      min-width:0;min-height:44px;padding:6px 4px;
+      font-size:12px;line-height:1.2;
+    }
+    .v3-meters{grid-template-columns:repeat(4,minmax(0,1fr));}
+    .v3-meter{min-height:46px;padding:6px;}
+    .v3-meter-head{font-size:10px;}
+    .v3-game-center{
+      display:flex;flex-direction:column;align-items:stretch;
+      gap:12px;padding:12px;
+    }
+    .v3-event{order:1;width:100%;}
+    .v3-side-card{order:2;width:100%;margin:0;}
+    .v3-log{order:3;width:100%;margin:0;}
+    .v4-inventory{grid-template-columns:repeat(3,1fr);}
+    .v3-side-card::before{display:none;}
+    .v3-scene-face.v3-sprite-solo,.v3-scene-face.v3-sprite-chen,.v3-scene-face.v3-sprite-shen,.v3-scene-face.v3-sprite-zhou{
+      width:58px;height:124px;
+    }
+    .v3-side-card p,.v3-side-card .v3-path-list{display:block;}
+    .v3-quickbar{
+      display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:4px;padding:7px 5px;overflow:visible;
+    }
+    .v3-quickbar button{
+      min-width:0;min-height:48px;padding:5px 2px;
+      font-size:11px;line-height:1.15;
+    }
+    .v4-system-overlay{align-items:flex-end;padding:0;}
+    .v4-system-window{width:100%;max-height:84vh;border-left:0;border-right:0;border-bottom:0;}
+    .v4-system-close{width:44px;height:44px;}
+    .v4-system-body{padding:14px;}
+    .v4-panel-grid{grid-template-columns:1fr;}
+    .v4-panel-card.is-wide{grid-column:auto;}
+    .v5-feedback-overlay{align-items:flex-end;padding:0;}
+    .v5-feedback-card{
+      width:100%;max-height:88vh;overflow:auto;
+      padding:17px 16px 18px;border-left:0;border-right:0;border-bottom:0;
+    }
+    .v5-feedback-head{grid-template-columns:76px minmax(0,1fr);gap:10px;padding-bottom:10px;}
+    .v5-feedback-face{width:50px;height:107px;}
+    .v5-feedback-face.v3-sprite-doctor,.v5-feedback-face.v3-sprite-family,
+    .v5-feedback-face.v3-sprite-friend,.v5-feedback-face.v3-sprite-social{
+      width:72px;height:96px;
+    }
+    .v5-feedback-head h2{font-size:20px;}
+    .v5-feedback-thinking{min-height:96px;padding:18px 4px;}
+    .v5-feedback-response{font-size:14px;line-height:1.7;padding:13px 14px;}
+    .v5-feedback-deltas{gap:5px;margin-top:11px;}
+    .v5-delta-chip{font-size:11px;padding:5px 7px;}
+  }
+
+  /* ========== V6 · 事件舞台：默认只让相处与选择留在画面里 ========== */
+  #v3-game{
+    min-height:100vh;
+    background:
+      linear-gradient(rgba(40,20,20,.18),rgba(40,20,20,.42)),
+      url("./pixel-life-town-v1.png") center/cover fixed;
+  }
+  #v3-game .v3-topbar{
+    min-height:68px;
+    padding:8px 16px;
+    background:linear-gradient(rgba(78,42,28,.96),rgba(49,27,23,.96));
+  }
+  #v3-game .v3-player{min-width:0;}
+  #v3-game .v3-avatar{width:42px;height:42px;font-size:20px;}
+  #v3-game .v3-calendar{min-width:142px;padding:5px 11px;}
+  .v6-top-actions{display:flex;align-items:center;gap:9px;}
+  .v6-system-trigger{
+    min-height:42px;padding:8px 13px;
+    border:3px solid var(--v4-wood-900);
+    background:#f6d995;color:var(--v4-ink);
+    font-weight:1000;cursor:pointer;
+    box-shadow:inset 0 0 0 2px #fff0c8,0 3px 0 #71412b;
+  }
+  .v6-system-trigger:hover,.v6-system-trigger:focus-visible{
+    background:#ffe8ad;outline:3px solid #f0ad55;outline-offset:2px;
+  }
+  .v6-system-trigger:active{transform:translateY(2px);box-shadow:inset 0 0 0 2px #fff0c8,0 1px 0 #71412b;}
+
+  #v3-game>.v3-meters,
+  #v3-game>.v4-town-nav,
+  #v3-game .v3-side-card,
+  #v3-game .v3-log,
+  #v3-game>.v3-quickbar,
+  #v3-game>.v3-bottom-path{display:none!important;}
+
+  #v3-game .v3-game-center{
+    width:100%;max-width:none;
+    display:block;
+    flex:1;
+    padding:20px clamp(14px,4vw,54px) 32px;
+  }
+  #v3-game .v3-event{
+    width:min(800px,100%);
+    margin:0 auto;
+    padding:20px 22px 24px;
+    background:rgba(255,238,194,.98);
+    box-shadow:
+      inset 0 0 0 4px #f8dfaa,
+      0 10px 0 rgba(48,24,19,.38),
+      0 22px 45px rgba(35,17,18,.28);
+  }
+  #v3-game .v3-event-scene{
+    min-height:132px;
+    margin-bottom:14px;
+    padding:0 4px 12px;
+  }
+  #v3-game .v3-scene-face.v3-sprite-solo,
+  #v3-game .v3-scene-face.v3-sprite-chen,
+  #v3-game .v3-scene-face.v3-sprite-shen,
+  #v3-game .v3-scene-face.v3-sprite-zhou{
+    width:72px;height:135px;
+  }
+  #v3-game .v3-event h2{font-size:27px;}
+  #v3-game .v3-event-copy{
+    min-height:0;
+    margin:0 2px 16px;
+    font-size:15px;
+    line-height:1.8;
+  }
+  #v3-game .v3-event-illustration{margin-bottom:16px;}
+
+  .v6-hub-purpose{
+    margin:0 0 15px;padding:10px 12px;
+    border-left:5px solid #ae5e3d;background:#efd19a;
+    color:#684132;font-size:13px;line-height:1.7;font-weight:900;
+  }
+  .v6-hub-grid{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;
+  }
+  .v6-hub-card{
+    appearance:none;width:100%;min-height:128px;
+    display:grid;grid-template-columns:48px 1fr;gap:11px;align-items:start;
+    padding:14px;text-align:left;
+    border:3px solid var(--v4-wood-800);background:#f8dda5;color:var(--v4-ink);
+    font:inherit;cursor:pointer;
+    box-shadow:inset 0 0 0 2px rgba(255,243,207,.86),0 3px 0 #7e4b31;
+  }
+  .v6-hub-card:hover,.v6-hub-card:focus-visible{
+    background:#ffe9b4;transform:translateY(-2px);
+    outline:3px solid #d47a44;outline-offset:1px;
+  }
+  .v6-hub-card:active{transform:translateY(1px);box-shadow:inset 0 0 0 2px rgba(255,243,207,.86),0 1px 0 #7e4b31;}
+  .v6-hub-icon{
+    width:46px;height:46px;display:grid;place-items:center;
+    border:3px solid var(--v4-wood-800);background:#b9653b;color:#fff4d0;
+    font-size:20px;font-weight:1000;
+  }
+  .v6-hub-copy b{display:block;margin:1px 0 5px;font-size:15px;}
+  .v6-hub-copy span{display:block;color:#70493b;font-size:12px;line-height:1.6;}
+  .v6-hub-copy small{display:block;margin-top:7px;color:#9a5638;font-size:11px;font-weight:1000;}
+  .v7-now-card{
+    margin:0 0 14px;padding:15px;
+    border:3px solid var(--v4-wood-800);background:#f8dda5;
+    box-shadow:inset 0 0 0 2px rgba(255,243,207,.86),0 4px 0 #7e4b31;
+  }
+  .v7-now-card .v3-kicker{margin-bottom:6px;}
+  .v7-now-card h3{margin:0 0 7px;font-size:18px;}
+  .v7-now-card p{margin:0;color:#70493b;font-size:13px;line-height:1.65;}
+  .v7-now-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;}
+  .v7-now-tags span{
+    padding:5px 8px;border:2px solid #a65332;background:#ffe9b4;
+    color:#704131;font-size:11px;font-weight:1000;
+  }
+  .v7-status-list{display:grid;gap:7px;}
+  .v7-status-row{
+    appearance:none;width:100%;min-height:66px;padding:10px 12px;
+    display:grid;grid-template-columns:minmax(98px,.55fr) minmax(0,1fr) auto 22px;gap:10px;align-items:center;
+    border:3px solid var(--v4-wood-800);background:#f8dda5;color:var(--v4-ink);
+    font:inherit;text-align:left;cursor:pointer;
+    box-shadow:inset 0 0 0 2px rgba(255,243,207,.86),0 2px 0 #7e4b31;
+  }
+  .v7-status-row:hover,.v7-status-row:focus-visible{background:#ffe9b4;outline:3px solid #d47a44;outline-offset:1px;}
+  .v7-status-row b{font-size:14px;}
+  .v7-status-row span{color:#70493b;font-size:12px;line-height:1.5;}
+  .v7-status-row small{color:#9a5638;font-size:11px;font-weight:1000;text-align:right;}
+  .v7-status-row::after{content:"›";font-size:22px;font-weight:1000;color:#a65332;}
+  .v6-hub-back{
+    min-height:38px;margin:0 0 14px;padding:7px 11px;
+    border:2px solid var(--v4-wood-800);background:#efd19a;color:var(--v4-ink);
+    font-weight:1000;cursor:pointer;box-shadow:0 2px 0 #7e4b31;
+  }
+  .v6-overview-grid{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+  }
+  .v6-overview-card{
+    appearance:none;width:100%;min-height:94px;padding:11px;
+    border:3px solid var(--v4-wood-800);background:#f8dda5;color:var(--v4-ink);
+    font:inherit;text-align:left;cursor:pointer;
+    box-shadow:inset 0 0 0 2px rgba(255,243,207,.86);
+  }
+  .v6-overview-card.is-current{background:#ffe9ac;border-color:#a65332;}
+  .v6-overview-card.is-danger{background:#efb6a7;}
+  .v6-overview-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:1000;}
+  .v6-overview-card p{margin:7px 0 0;color:#70493b;font-size:11px;line-height:1.5;}
+  .v6-overview-card .v4-panel-meter{height:12px;margin:7px 0 0;}
+
+  @media(max-width:760px){
+    #v3-game .v3-topbar{
+      min-height:58px;padding:6px 8px;gap:6px;
+    }
+    #v3-game .v3-player{gap:6px;}
+    #v3-game .v3-avatar{width:36px;height:36px;border-width:2px;font-size:17px;}
+    #v3-game .v3-player-name{font-size:12px;}
+    #v3-game .v3-player-route{display:none;}
+    #v3-game .v3-calendar{min-width:92px;padding:4px 6px;}
+    #v3-game .v3-calendar strong{font-size:12px;}
+    #v3-game .v3-calendar span{font-size:9px;}
+    .v6-top-actions{gap:5px;}
+    .v6-system-trigger{min-height:38px;padding:6px 8px;font-size:11px;}
+    #v3-game .v3-menu-btn{width:44px;height:44px;font-size:18px;}
+    #v3-game .v3-game-center{padding:10px 9px 20px;}
+    #v3-game .v3-event{padding:14px 13px 17px;}
+    #v3-game .v3-event-scene{min-height:100px;padding-bottom:9px;margin-bottom:10px;}
+    #v3-game .v3-scene-face.v3-sprite-solo,
+    #v3-game .v3-scene-face.v3-sprite-chen,
+    #v3-game .v3-scene-face.v3-sprite-shen,
+    #v3-game .v3-scene-face.v3-sprite-zhou{width:59px;height:111px;}
+    #v3-game .v3-event h2{font-size:20px;}
+    #v3-game .v3-event-copy{font-size:14px;line-height:1.7;margin-bottom:13px;}
+    .v6-hub-grid,.v6-overview-grid{grid-template-columns:1fr;}
+    .v6-hub-card{min-height:108px;grid-template-columns:42px 1fr;padding:12px;}
+    .v6-hub-icon{width:40px;height:40px;font-size:17px;}
+    .v7-status-row{grid-template-columns:1fr auto;gap:3px 8px;}
+    .v7-status-row span{grid-column:1 / -1;}
+    .v7-status-row small{grid-column:2;grid-row:1;}
+    .v7-status-row::after{grid-column:2;grid-row:2;}
+  }
+  @media(max-width:360px){
+    #v3-game .v3-player>div:last-child{display:none;}
+    #v3-game .v3-calendar{min-width:82px;}
+    .v6-system-trigger{padding:6px;font-size:10px;}
+  }
+</style>
+<script id="v3-pixel-life-app">
+(function(){
+  "use strict";
+
+  var v3Style=document.getElementById("v3-pixel-life-style");
+  if(v3Style && document.head) document.head.appendChild(v3Style);
+
+  var roots = {
+    chen:{
+      key:"chen",name:"陈牧",tag:"稳定背后有一个太近的家",portrait:"#bf7a66",
+      intro:"陈牧的父母住在同一座城，愿意帮忙，也习惯参与。他把周末写进日历，却还没学会替小家庭守住边界。",
+      quote:"我不保证每一天浪漫，但该我承担的，我会写进日历。",
+      start:{money:58,career:58,trust:68,intimacy:58,body:64,mind:62,support:54,progress:8}
+    },
+    shen:{
+      key:"shen",name:"沈明",tag:"没有原生家庭托底的行动派",portrait:"#788fa6",
+      intro:"沈明的父母早逝，他很早就学会靠钱和计划解决问题。他能准备资源，却没有一个随时可以接手的家庭支援。",
+      quote:"我习惯自己扛，但如果要成为家，我们得重新学会向别人开口。",
+      start:{money:76,career:82,trust:46,intimacy:42,body:61,mind:57,support:48,progress:8}
+    },
+    zhou:{
+      key:"zhou",name:"周屿",tag:"亲密热烈却害怕固定下来",portrait:"#9e7aa0",
+      intro:"周屿在父母长期分居和不断搬家中长大。他很懂你的情绪，也本能地害怕固定住处、婚姻和被安排的人生。",
+      quote:"我是真的爱你，只是我还不知道，留下来是不是另一种失去自由。",
+      start:{money:43,career:48,trust:76,intimacy:82,body:62,mind:66,support:45,progress:8}
+    },
+    solo:{
+      key:"solo",name:"暂不选择伴侣",tag:"一个人也会走进不同命运",portrait:"#d48b75",
+      intro:"你没有把人生按下暂停。你可能爱上一个女孩子，可能先拥有财富再选择供精生育，也可能一直没有让孩子进入家庭。",
+      quote:"我暂时不选谁，但时间、爱和决定仍会继续发生。",
+      start:{money:57,career:65,trust:55,intimacy:55,body:66,mind:72,support:42,progress:8}
+    }
+  };
+
+  var metricMeta = [
+    ["money","资金","#e2a43f"],["career","事业","#537fa5"],["body","身体","#69a96b"],["trust","共识","#d97868"],
+    ["intimacy","亲密","#dc7f9a"],["support","照护网","#5e98ad"],["mind","心力","#a07bb0"],["progress","生育进度","#d8678a"]
+  ];
+
+  var state = null;
+  var pendingOriginKey = null;
+  var toastTimer = null;
+  var feedbackTimer = null;
+  var pendingAdvance = null;
+  var busy = false;
+  var playerProfile = {age:25,career:0,interest:0,wish:0,goal:0};
+  var profileOptions = {
+    career:["设计师","自由职业者","项目经理","教师"],
+    interest:["绘画 / 写作","旅行 / 摄影","烹饪 / 园艺","阅读 / 音乐"],
+    wish:["明确想要孩子","正在认真考虑","想先做好准备"],
+    goal:["孩子进入家庭","建立稳定支持网","兼顾事业与家庭"]
+  };
+
+  function markup(){
+    return [
+      '<main id="v3-app">',
+        '<section id="v3-home" class="v3-screen is-active">',
+          '<div class="v3-home-card v3-pixel-panel">',
+            '<div class="v4-version-chip">紫花海 · 像素人生模拟器</div>',
+            '<div class="v3-logo-small">从约会开始，经营一段人生</div>',
+            '<h1 class="v3-title">我想生个娃</h1>',
+            '<div class="v3-home-lineup" aria-label="四位主角同屏"><div class="v3-home-person v3-sprite v3-sprite-solo"></div><div class="v3-home-person v3-sprite v3-sprite-chen"></div><div class="v3-home-person v3-sprite v3-sprite-shen"></div><div class="v3-home-person v3-sprite v3-sprite-zhou"></div></div>',
+            '<p class="v3-home-line">你的选择，会长成怎样的家庭？</p>',
+            '<p class="v3-home-sub">从第一次约会出发，经营资金、身体、关系和支持网。伴侣不是必选项，孩子进入家庭才是这一局的目标。</p>',
+            '<div class="v3-home-actions">',
+              '<button class="v3-btn" data-v3-action="new">开始新人生</button>',
+              '<button class="v3-btn v3-ghost" data-v3-action="rules">玩法说明</button>',
+            '</div>',
+          '</div>',
+        '</section>',
+        '<section id="v3-origin" class="v3-screen">',
+          '<div class="v3-origin-shell v3-pixel-panel">',
+            '<div class="v3-section-head"><div class="v3-kicker">选择人生入口</div><h2>这一生，你想怎样组成家？</h2><p>可以先心动，也可以先独自出发。不同起点会改变资源，也会影响你之后的家庭与孩子。</p></div>',
+            '<div class="v3-origin-grid">',
+              originCard("chen","陈","陈牧","他会把日子过得很稳","父母很近 · 生活稳定 · 边界要谈","#bf7a66"),
+              originCard("shen","沈","沈明","他什么都能安排好","资源充足 · 时间稀缺 · 需要真正出现","#788fa6"),
+              originCard("zhou","周","周屿","他爱得热烈，也害怕承诺","很懂你 · 收入漂浮 · 可能离开","#9e7aa0"),
+              originCard("solo","我","独自开始","先不把命运交给任何人","可能心动 · 可能辅助生育 · 可能未通关","#d48b75"),
+            '</div>',
+          '</div>',
+        '</section>',
+        '<section id="v3-confirm" class="v3-screen">',
+          '<div class="v3-confirm-card v3-pixel-panel">',
+            '<div id="v3-confirm-scene" class="v3-confirm-scene v3-confirm-env-chen"><div id="v3-confirm-person" class="v3-confirm-person v3-sprite v3-sprite-chen"></div></div>',
+            '<div class="v3-confirm-copy"><div class="v3-kicker">确认人生起点</div><h2>创建你的角色</h2><div id="v3-confirm-tag" class="v3-confirm-tag">已选择人生入口</div>',
+              '<div class="v4-profile-sheet">',
+                '<div class="v4-profile-row"><span>年龄</span><button data-v4-field="age" data-v4-dir="-1">‹</button><b id="v4-profile-age">25 岁</b><button data-v4-field="age" data-v4-dir="1">›</button></div>',
+                '<div class="v4-profile-row"><span>职业</span><button data-v4-field="career" data-v4-dir="-1">‹</button><b id="v4-profile-career">设计师</b><button data-v4-field="career" data-v4-dir="1">›</button></div>',
+                '<div class="v4-profile-row v4-profile-static"><span>初始存款</span><i></i><b id="v4-profile-money">30,000 元</b><i></i></div>',
+                '<div class="v4-profile-row"><span>兴趣</span><button data-v4-field="interest" data-v4-dir="-1">‹</button><b id="v4-profile-interest">绘画 / 写作</b><button data-v4-field="interest" data-v4-dir="1">›</button></div>',
+                '<div class="v4-profile-row"><span>生育愿望</span><button data-v4-field="wish" data-v4-dir="-1">‹</button><b id="v4-profile-wish">明确想要孩子</b><button data-v4-field="wish" data-v4-dir="1">›</button></div>',
+                '<div class="v4-profile-row"><span>人生目标</span><button data-v4-field="goal" data-v4-dir="-1">‹</button><b id="v4-profile-goal">孩子进入家庭</b><button data-v4-field="goal" data-v4-dir="1">›</button></div>',
+              '</div>',
+              '<p id="v3-confirm-quote" class="v3-confirm-quote"></p><div class="v3-confirm-actions"><button class="v3-btn" data-v3-action="confirm-origin">开始人生</button><button class="v3-btn v3-ghost" data-v3-action="origins">返回重选</button></div></div>',
+          '</div>',
+        '</section>',
+        '<section id="v3-game" class="v3-screen">',
+          '<header class="v3-topbar">',
+            '<div class="v3-player"><div id="v3-avatar" class="v3-avatar">我</div><div><div id="v3-player-name" class="v3-player-name">我的人生</div><div id="v3-player-route" class="v3-player-route">路线准备中</div></div></div>',
+            '<div class="v3-calendar"><strong id="v3-date">第 1 年 · 春</strong><span id="v3-stage-label">约会期</span></div>',
+            '<div class="v6-top-actions"><button class="v6-system-trigger" data-v3-action="system-hub">这一刻</button><button class="v3-btn v3-menu-btn" data-v3-action="home" aria-label="返回首页">×</button></div>',
+          '</header>',
+          '<div id="v3-meters" class="v3-meters"></div>',
+          '<nav id="v4-town-nav" class="v4-town-nav" aria-label="人生地图"><div class="v4-map-title">人生地图</div><button data-v4-place="cafe">咖啡馆</button><button data-v4-place="company">公司</button><button data-v4-place="hospital">医院</button><button data-v4-place="parents">父母家</button><button data-v4-place="service">家庭服务中心</button></nav>',
+          '<div class="v3-game-center">',
+            '<aside class="v3-side-card v3-pixel-panel">',
+              '<div class="v3-kicker">当前目标</div><h3 id="v3-goal">建立真实共识</h3>',
+              '<p id="v3-goal-copy">选择不会直接判定对错，它会改变你下一步拥有的资源。</p>',
+              '<div id="v3-path-list" class="v3-path-list"></div>',
+            '</aside>',
+            '<article class="v3-event v3-pixel-panel">',
+              '<div class="v3-event-scene"><div id="v3-scene-face" class="v3-scene-face">陈</div><div><div id="v3-event-stage" class="v3-event-stage">约会期 · 事件 1</div><h2 id="v3-event-title">第一次把未来放上桌</h2></div></div>',
+              '<div id="v3-event-illustration" class="v3-event-illustration v3-atlas-0" role="img" aria-label="当前事件像素插画"></div>',
+              '<p id="v3-event-copy" class="v3-event-copy"></p>',
+              '<div id="v3-event-echo" class="v3-event-echo"></div>',
+              '<div id="v3-choices" class="v3-choice-grid"></div>',
+            '</article>',
+            '<aside class="v3-log v3-pixel-panel"><div class="v3-kicker">人生背包</div><h3>人生背包</h3><div id="v4-inventory" class="v4-inventory"></div><div class="v4-log-title">最近的人生志</div><div id="v3-log-list"></div><div class="v3-hint">八项资源都会产生后果。除生育进度外，任一项降到 32 或以下会中断。</div></aside>',
+          '</div>',
+          '<nav class="v3-quickbar" aria-label="游戏快捷栏"><button data-v3-action="profile">人物档案</button><button data-v3-action="inventory">人生背包</button><button data-v3-action="relation">关系</button><button data-v3-action="life-log">人生志</button><button data-v3-action="route-status">当前路线</button></nav>',
+          '<footer id="v3-bottom-path" class="v3-bottom-path">约会 → 相处 → 家庭协商 → 路径选择 → 孩子进入家庭</footer>',
+          '<div id="v4-system-overlay" class="v4-system-overlay" aria-hidden="true">',
+            '<section class="v4-system-window v3-pixel-panel" role="dialog" aria-modal="true" aria-labelledby="v4-system-title">',
+              '<header class="v4-system-head"><div class="v3-kicker" id="v4-system-kicker">人生系统</div><h2 id="v4-system-title">人生系统</h2><button class="v4-system-close" data-v4-close aria-label="关闭">×</button></header>',
+              '<div id="v4-system-body" class="v4-system-body"></div>',
+            '</section>',
+          '</div>',
+          '<div id="v5-feedback-overlay" class="v5-feedback-overlay" aria-hidden="true">',
+            '<section class="v5-feedback-card v3-pixel-panel" role="dialog" aria-modal="true" aria-labelledby="v5-feedback-title">',
+              '<header class="v5-feedback-head">',
+                '<div id="v5-feedback-face" class="v5-feedback-face v3-sprite v3-sprite-solo" role="img" aria-label="回应者"></div>',
+                '<div><div id="v5-feedback-speaker" class="v3-kicker">关系正在回应</div><h2 id="v5-feedback-title">你的选择不会静默发生</h2></div>',
+              '</header>',
+              '<div id="v5-feedback-thinking" class="v5-feedback-thinking" aria-live="polite"><span id="v5-feedback-thinking-copy">对方正在想</span><span class="v5-feedback-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>',
+              '<div id="v5-feedback-result" class="v5-feedback-result" aria-live="polite">',
+                '<blockquote id="v5-feedback-response" class="v5-feedback-response"></blockquote>',
+                '<div id="v5-feedback-deltas" class="v5-feedback-deltas" aria-label="资源变化"></div>',
+                '<div id="v5-feedback-memory" class="v5-feedback-memory"></div>',
+                '<button class="v3-btn v5-feedback-continue" data-v5-feedback-continue>下一步</button>',
+              '</div>',
+            '</section>',
+          '</div>',
+        '</section>',
+        '<section id="v3-ending" class="v3-screen"><div id="v3-ending-card" class="v3-ending-card v3-pixel-panel"></div></section>',
+        '<section id="v3-rules" class="v3-screen">',
+          '<div class="v3-rules-card v3-pixel-panel"><h2>这一局的通关规则</h2><ol><li>先从约会对象或“暂不选择伴侣”开始。</li><li>每次事件会改变资金、事业、身体、共识、亲密、照护网、心力和生育进度。</li><li>除进度外，任一资源降到 32 或以下会中断；进入孩子到来期前，进度至少需要 57。</li><li>中途决定自然生育、辅助生育、领养、单亲或共同养育等路径。</li><li>孩子进入家庭时立即通关。本 Demo 不模拟带娃阶段。</li></ol><button class="v3-btn" data-v3-action="home">回到首页</button></div>',
+        '</section>',
+        '<div id="v3-toast" class="v3-toast"></div>',
+      '</main>'
+    ].join("");
+  }
+
+  function originCard(key,initial,name,tag,desc,color){
+    var solo=key==="solo";
+    var whisper={chen:"他给你安稳，也把家门带得太近。",shen:"他会安排一切，除了准时出现。",zhou:"他把你看得很亮，却不一定留下。",solo:"没有初始伴侣，人生仍然往前走。"}[key];
+    return '<button class="v3-origin-card '+(solo?'is-solo':'')+'" data-v3-origin="'+key+'" data-kind="'+(solo?'独立入口':'伴侣入口')+'" style="--portrait:'+color+'">'+
+      (solo?'<div class="v3-solo-symbol" aria-hidden="true"></div>':'<div class="v3-portrait v3-sprite v3-sprite-'+key+'" role="img" aria-label="'+name+'像素人物"></div>')+
+      '<h3>'+name+'</h3><div class="v3-origin-tag">'+tag+'</div><p>'+desc+'</p><em class="v3-origin-whisper">'+whisper+'</em><span class="v3-start-mark">'+(solo?'从自己开始 →':'从这里开始 →')+'</span></button>';
+  }
+
+  function show(id){
+    closeSystemPanel();
+    closeChoiceFeedback(true);
+    var screens=document.querySelectorAll(".v3-screen");
+    for(var i=0;i<screens.length;i++) screens[i].classList.remove("is-active");
+    var el=document.getElementById(id);
+    if(el) el.classList.add("is-active");
+    window.scrollTo(0,0);
+  }
+
+  function season(index){
+    var names=["春","夏","秋","冬"];
+    return "第 "+(Math.floor(index/4)+1)+" 年 · "+names[index%4];
+  }
+
+  function clamp(n){return Math.max(0,Math.min(100,n));}
+
+  function createState(key){
+    var root=roots[key], m={}, k;
+    for(k in root.start) m[k]=root.start[k];
+    return {
+      root:root,metrics:m,step:0,elapsed:0,path:"尚未确定",flags:{},
+      logs:[root.key==="solo"?"暂不选择伴侣，开始建立自己的孩子计划":"与「"+root.name+"」开始认真约会"],
+      history:[],ui:{panel:null,payload:null},lastNote:"",failed:false
+    };
+  }
+
+  function deltaText(delta){
+    var labels={money:"资金",career:"事业",trust:"共识",intimacy:"亲密",body:"身体",mind:"心力",support:"照护网",progress:"进度"};
+    var bits=[];
+    for(var k in delta){
+      if(k==="progress") continue;
+      bits.push(labels[k]+(delta[k]>0?" +":" ")+delta[k]);
+    }
+    return bits.join(" · ");
+  }
+
+  function feedbackActor(event){
+    if(event.stage==="抵达期") return {name:"这个家",sprite:"family",thinking:"这个家正在迎接新成员"};
+    if(event.stage==="路径选择期") return {name:"家庭路线",sprite:"social",thinking:"这条家庭路线正在成形"};
+    if(event.face==="林") return {name:"林然",sprite:"friend",thinking:"林然正在认真回应你"};
+    if(event.face==="医") return {name:"医生",sprite:"doctor",thinking:"医生正在整理这次选择的影响"};
+    if(event.face==="友") return {name:"朋友",sprite:"friend",thinking:"朋友正在认真回应你"};
+    if(event.face==="新") return {name:"新的同行者",sprite:"friend",thinking:"新的同行者正在回应你"};
+    if(event.face==="账") return {name:"你的计划",sprite:"solo",thinking:"你的计划正在重新计算"};
+    if(event.face==="家"&&state.root.key==="solo") return {name:"你的家庭计划",sprite:"family",thinking:"你的家庭计划正在更新"};
+    if(state.root.key!=="solo") return {name:state.root.name,sprite:state.root.key,thinking:state.root.name+"正在想"};
+    return {name:"未来的你",sprite:"solo",thinking:"未来的你正在回应这次决定"};
+  }
+
+  function responseForChoice(event,c){
+    if(c.response) return c.response;
+    var d=c.delta||{};
+    var strained=(d.trust||0)<0||(d.intimacy||0)<0||(d.support||0)<0||(d.mind||0)<=-5||(d.body||0)<=-7;
+    if(event.stage==="抵达期"){
+      return "门打开了。"+c.note+"。这一局不是因为所有问题都消失，而是这个家已经准备好接住孩子。";
+    }
+    if(event.stage==="路径选择期"){
+      return "“"+c.title+"”已经从一种可能变成了本局要执行的路线。接下来，时间、钱和照护都会围绕它重新安排。";
+    }
+    if(event.face==="医"){
+      return (d.body||0)>0
+        ?"医生把复查日期和几种可选方案一起圈了出来：“有了信息，你就不必靠猜测决定下一步。”"
+        :"医生没有催促，只在报告旁写下新的时间点：“可以晚一点决定，但时间本身也会改变选择。”";
+    }
+    if(event.face==="友"){
+      return (d.support||0)>0
+        ?"朋友没有只说“有事叫我”，而是把能陪诊、能救急的时间写进了你们共同的日历。"
+        :"朋友尊重你的独立，也轻声提醒：“需要人的时候开口，不等于你失去了能力。”";
+    }
+    if(event.face==="账"){
+      return (d.money||0)>0
+        ?"预算里第一次出现了一笔有名字的钱。它不代表万事俱备，却让下一步不再只靠愿望。"
+        :"眼前的生活没有被打断，但未来可以调用的缓冲又薄了一层。";
+    }
+    if(state.root.key==="solo"){
+      return strained
+        ?"你把「"+c.note+"」记进计划。没有人替你做决定，也意味着下一步需要找到更多真实支点。"
+        :"你把「"+c.note+"」写进计划表。愿望第一次变成了一项可以继续执行的安排。";
+    }
+    if(state.root.key==="chen"){
+      return strained
+        ?"陈牧点了点头：“那先这样。”他没有反对，但那个尚未说清的问题仍留在你们之间。"
+        :"陈牧停了两秒，把这件事写进日历：“好。不是口头答应，我们按说好的做，也不让责任落回你一个人。”";
+    }
+    if(state.root.key==="shen"){
+      return strained
+        ?"沈明很快算出了最省力的方案。数字成立了，但你仍在等一句“我们一起”。"
+        :"沈明打开日历，当场划出时间：“既然决定了，就把费用、时间和责任一起锁定。”";
+    }
+    return strained
+      ?"周屿抱了抱你：“到时候总会有办法。”亲密是真的，具体安排仍然空着。"
+      :"周屿把你的话重复了一遍：“自由不是失联。我们把底线写清，再一起往前走。”";
+  }
+
+  function feedbackDeltaHtml(delta){
+    var labels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"照护网",mind:"心力",progress:"生育进度"};
+    var order=["money","career","body","trust","intimacy","support","mind","progress"];
+    var html="";
+    for(var i=0;i<order.length;i++){
+      var key=order[i], value=delta[key]||0;
+      if(!value) continue;
+      html+='<span class="v5-delta-chip '+(value>0?"is-positive":"is-negative")+'">'+labels[key]+" "+(value>0?"+":"")+value+'</span>';
+    }
+    return html||'<span class="v5-delta-chip">资源保持稳定</span>';
+  }
+
+  function escapeHtml(value){
+    return String(value==null?"":value).replace(/[&<>"']/g,function(char){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];
+    });
+  }
+
+  function cloneMetrics(metrics){
+    var copy={};
+    for(var key in metrics) copy[key]=metrics[key];
+    return copy;
+  }
+
+  function partnerOpeningEvent(){
+    if(state.root.key==="chen"){
+      return {
+        stage:"约会期",title:"周日晚饭后，他先问你回不回家吃饭",face:"陈",place:"cafe",scene:"date",art:{sheet:"moments",cell:0},
+        copy:"第三次约会，陈牧的妈妈已经打来两次电话，问你爱吃什么、以后住哪边。陈牧觉得这叫热情，你第一次看见他的稳定背后站着一个很近的家。",
+        choices:[
+          choice("先问清孩子和父母边界","喜欢可以继续，边界必须先出现",{trust:10,intimacy:3,mind:5,progress:8},"第一次约会就把小家庭边界放上桌",function(){state.flags.wishClear=true;}, {response:"陈牧愣了一下，随后把手机扣在桌上：“你说得对。孩子和我们的家，应该先由我们决定。”"}),
+          choice("先享受这份被照顾的感觉","关系更暖，边界问题留到以后",{trust:-4,intimacy:8,support:4,mind:3,progress:4},"你先接住了热情，没有讨论它会走多近",function(){state.flags.wishClear=false;})
+        ]
+      };
+    }
+    if(state.root.key==="shen"){
+      return {
+        stage:"约会期",title:"迟到四十分钟的顶楼包间",face:"沈",place:"company",scene:"life",art:{sheet:"nine",cell:8},
+        copy:"沈明临时结束一场融资会，直接把餐厅升级成顶楼包间。他道歉、买单、安排车，却没有解释下一次会不会仍然让工作先到。",
+        choices:[
+          choice("不要补偿，告诉我你能交出多少时间","把时间当成家庭资源谈清楚",{trust:10,intimacy:4,career:-2,mind:5,progress:8},"第一次约会就把时间责任说清",function(){state.flags.wishClear=true;}, {response:"沈明没有再叫服务员加菜。他打开日历：“你要的不是更贵的晚餐，是我真的出现。这个我记住了。”"}),
+          choice("接受他的解决方式","资源令人安心，时间问题继续等待",{money:5,trust:-5,intimacy:5,career:5,progress:4},"你接受了补偿，也接受了暂时缺席",function(){state.flags.wishClear=false;})
+        ]
+      };
+    }
+    return {
+      stage:"约会期",title:"江边走到最后一班地铁离开",face:"周",place:"cafe",scene:"date",art:{sheet:"collage",cell:7},
+      copy:"周屿记得你随口提过的歌，也听懂你为什么想要孩子。末班车广播响起时，他说想和你一直走下去，却笑着说自己从没想过固定在哪座城。",
+      choices:[
+        choice("问他：自由里有没有共同责任","让心动和现实同时出现",{trust:9,intimacy:7,mind:5,progress:8},"你第一次问自由能不能承担责任",function(){state.flags.wishClear=true;}, {response:"周屿没有立刻回答。他陪你等到车来：“我想试着给你一个不是诗的答案。”"}),
+        choice("先跟着这份心动走","亲密迅速升温，未来仍没有地址",{trust:-3,intimacy:11,mind:5,progress:4},"你们先拥有了热烈，没有拥有共同地址",function(){state.flags.wishClear=false;})
+      ]
+    };
+  }
+
+  function partnerRhythmEvent(){
+    if(state.root.key==="chen"){
+      return {
+        stage:"相处期",title:"备用钥匙交给谁",face:"家",place:"parents",scene:"family",art:{sheet:"collage",cell:2},
+        copy:"陈牧的妈妈提出拿一把新家的备用钥匙，理由是以后能来做饭、照顾孩子。陈牧说“都是一家人”，然后看向你。",
+        choices:[
+          choice("让陈牧亲口说明进门规则","帮助可以进来，决定权留在小家庭",{trust:10,intimacy:4,support:5,mind:5,progress:9},"陈牧第一次站出来守住边界",function(){state.flags.partnerLesson="共同边界";state.flags.familyBoundary=true;}),
+          choice("先把钥匙交出去","眼下多了帮手，也多了未经同意的进入",{trust:-6,intimacy:-3,support:8,mind:-8,progress:5},"备用钥匙换来帮助，也带来持续介入",function(){state.flags.partnerLesson="边界未定";state.flags.familyBoundary=false;})
+        ]
+      };
+    }
+    if(state.root.key==="shen"){
+      return {
+        stage:"相处期",title:"紧急联系人那一栏空着",face:"沈",place:"hospital",scene:"clinic",art:{sheet:"collage",cell:8},
+        copy:"体检表要求填写两位紧急联系人。沈明的父母早逝，他习惯只填自己；你的家人也不一定能随时出现。钱可以购买服务，却不能自动变成一个会在凌晨接电话的人。",
+        choices:[
+          choice("一起建立朋友与专业照护名单","承认没有父母托底，再主动造一张网",{support:13,trust:9,mind:5,money:-4,progress:9},"你们第一次建立属于自己的支援网络",function(){state.flags.partnerLesson="主动造网";state.flags.familyBoundary=true;}),
+          choice("把高级护理套餐当作全部答案","资源更稳，人仍然缺席",{money:-6,support:5,trust:-5,intimacy:-4,mind:-5,progress:5},"服务被买下，紧急联系人仍然很少",function(){state.flags.partnerLesson="只有服务";state.flags.familyBoundary=false;})
+        ]
+      };
+    }
+    return {
+      stage:"相处期",title:"自由职业的房租缺口",face:"周",place:"company",scene:"life",art:{sheet:"collage",cell:4},
+      copy:"周屿的一笔项目款又延迟了。他没有逃避，但这个月的房租和共同生活支出出现真实缺口。他说自己从小搬家，住在哪里都一样。",
+      choices:[
+        choice("建立共同账户和最低收入线","保留自由，也给生活加上地基",{money:7,career:4,trust:8,intimacy:3,mind:5,progress:9},"周屿把浪漫之外的数字也放上桌",function(){state.flags.partnerLesson="共同落地";}),
+        choice("这次先替他补上全部缺口","保护眼前亲密，也放大长期波动",{money:-13,trust:-4,intimacy:6,mind:-6,progress:5},"你守住了这个月，风险仍留给下个月",function(){state.flags.partnerLesson="你在托底";})
+      ]
+    };
+  }
+
+  function partnerRealityEvent(){
+    if(state.root.key==="chen"){
+      return {
+        stage:"现实期",title:"复查那天，他妈妈比你们先到",face:"医",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:3},
+        copy:"医生需要你连续复查三次。陈牧请了假，但他的妈妈先替你问完所有问题，还开始安排以后由谁坐月子。身体是你的，家庭意见却已经挤进诊室。",
+        choices:[
+          choice("请陈牧陪你完成复查并挡住代答","把身体信息和决定权放回你们手里",{body:10,trust:9,mind:6,money:-6,progress:11},"陈牧在诊室里第一次替你守住决定权",function(){state.flags.checkup=true;}),
+          choice("让他妈妈继续全程安排","省下心力，也失去一部分主动",{body:5,support:8,trust:-6,mind:-6,progress:6},"复查完成了，决定权却变得模糊",function(){state.flags.checkup=true;})
+        ]
+      };
+    }
+    if(state.root.key==="shen"){
+      return {
+        stage:"现实期",title:"复查日期和晋升答辩在同一天",face:"沈",place:"company",scene:"life",art:{sheet:"nine",cell:4},
+        copy:"这次复查关系到后续生育方案，沈明的晋升答辩也只有一次。他说可以替你预约最好的医生，但人可能到不了。",
+        choices:[
+          choice("让他重新排答辩，陪你去复查","第一次让家庭时间不再排在最后",{career:-8,trust:13,intimacy:7,body:9,progress:11},"沈明失去一次加速，却真正出现在医院",function(){state.flags.checkup=true;}),
+          choice("接受司机和专属医生的安排","方案完善，陪伴仍被外包",{money:-7,career:8,trust:-8,intimacy:-7,body:6,progress:6},"复查完成了，你仍然独自走出诊室",function(){state.flags.checkup=true;})
+        ]
+      };
+    }
+    return {
+      stage:"现实期",title:"半年驻地邀请在检查前一天到来",face:"周",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:11},
+      copy:"医生建议你们一起复查，周屿却收到一份去海边驻留半年的邀请。他说这可能是一生只有一次的机会，也说远距离不会改变爱。",
+      choices:[
+        choice("请他先完成共同检查再决定","机会可以谈，身体信息不能消失",{body:9,trust:9,intimacy:4,career:-3,progress:11},"周屿第一次为了共同决定推迟出发",function(){state.flags.checkup=true;}),
+        choice("让他先去，你独自完成复查","保护他的自由，也测试你的承受",{body:7,career:5,trust:-7,intimacy:-8,mind:-6,progress:6},"报告出来时，他在另一座城市",function(){state.flags.checkup=true;})
+      ]
+    };
+  }
+
+  function partnerFamilyEvent(){
+    if(state.root.key==="chen"){
+      return {
+        stage:"家庭协商期",title:"他妈妈说：孩子当然主要跟妈妈",face:"家",place:"parents",scene:"family",art:{sheet:"nine",cell:5},
+        copy:"一次家庭聚餐里，陈牧的妈妈默认你会停下事业，陈牧负责挣钱。桌上每个人都说是在为你们好，只有你的未来被提前安排。",
+        choices:[
+          choice("让陈牧当场说出共同照护方案","不是替你解释，而是由他承担冲突",{trust:11,intimacy:5,support:5,mind:5,progress:9},"陈牧公开否定了默认的性别分工",function(){state.flags.familyBoundary=true;}),
+          choice("饭后由你单独慢慢解释","表面和平，代际压力继续落在你身上",{trust:-7,intimacy:-4,support:3,mind:-10,progress:5},"和平的成本仍由你一个人承担",function(){state.flags.familyBoundary=false;})
+        ]
+      };
+    }
+    if(state.root.key==="shen"){
+      return {
+        stage:"照护协商期",title:"照护预算里只有钱，没有人",face:"友",place:"service",scene:"path",art:{sheet:"collage",cell:6},
+        copy:"沈明列出月嫂、托育和家政的完整预算，却不愿意请朋友帮忙。他说欠人情最麻烦；你看见的是所有突发情况仍然只有你们两个人。",
+        choices:[
+          choice("邀请三位朋友加入紧急照护协议","让专业服务之外也有人能真正出现",{support:14,trust:8,mind:5,progress:9},"没有父母托底，你们主动组成了自己的家人",function(){state.flags.familyBoundary=true;state.flags.supportBuilt=true;}),
+          choice("只购买最高档服务","计划精确，但没有非商业关系的支点",{money:-10,support:6,trust:-4,mind:-4,progress:5},"照护被定价，孤立风险仍然存在",function(){state.flags.familyBoundary=false;state.flags.supportBuilt=false;})
+        ]
+      };
+    }
+    return {
+      stage:"家庭协商期",title:"他不想让孩子困住任何人",face:"周",place:"service",scene:"path",art:{sheet:"plan",cell:2},
+      copy:"谈到未来住处时，周屿希望你们保留各自的城市，孩子跟着“当下更自由的人”。他把这叫不互相牺牲，你听见的却是责任随时可能没有固定地址。",
+      choices:[
+        choice("先确定孩子的固定住处和轮班底线","成年人可以流动，照护不能漂浮",{trust:10,intimacy:4,support:8,mind:4,progress:9},"周屿开始把留下也理解为一种主动选择",function(){state.flags.familyBoundary=true;}),
+        choice("同意以后看情况再决定","保留想象，也保留巨大的执行风险",{trust:-8,intimacy:5,support:-5,mind:-8,progress:5},"自由被保留，孩子的日常仍没有地址",function(){state.flags.familyBoundary=false;})
+      ]
+    };
+  }
+
+  function partnerCommitEvent(){
+    var firstEcho=state.flags.wishClear?"第一次约会说清的愿望仍在桌面上。":"第一次约会没有说透的部分，现在必须重新谈清。";
+    var lesson=state.flags.partnerLesson||"尚未验证";
+    if(state.root.key==="chen"){
+      return {
+        stage:"承诺期",title:"婚礼日期定了，夜间照护还没定",face:"陈",place:"parents",scene:"family",art:{sheet:"moments",cell:2},
+        copy:firstEcho+" 陈牧愿意结婚，也愿意共同养育；但他仍把“我妈会帮忙”当成自己那一半责任。此前的相处结果是「"+lesson+"」。",
+        choices:[
+          choice("把父母边界和夜班责任写进婚前协议","稳定不是有人替他做，而是他自己承担",{trust:12,intimacy:6,support:8,money:3,progress:12},"陈牧线形成稳定共担结构"),
+          choice("先结婚，具体分工以后再磨合","关系继续，传统分工风险仍在",{trust:-5,intimacy:5,support:6,mind:-7,progress:7},"婚礼向前，责任仍然模糊"),
+          choice("这不是我要的共同生活，分手","结束这段关系，不再把时间押在改变他上",{trust:-12,intimacy:-15,mind:8,progress:0},"你结束了与陈牧的关系",null,{ending:"breakup"})
+        ]
+      };
+    }
+    if(state.root.key==="shen"){
+      return {
+        stage:"承诺期",title:"他愿意付全部费用，却不愿请一天假",face:"沈",place:"company",scene:"life",art:{sheet:"plan",cell:4},
+        copy:firstEcho+" 沈明的财务方案无可挑剔，但陪诊、休假和夜间照顾仍要从事业日程里真正让出位置。此前的相处结果是「"+lesson+"」。",
+        choices:[
+          choice("把陪诊、休假和夜班锁进工作日历","他交出的不只是钱，还有不可替代的时间",{career:-7,trust:13,intimacy:7,support:6,progress:12},"沈明把家庭时间设成不可被覆盖的日程"),
+          choice("由他出钱，你负责日常执行","资金更稳，隐形劳动向你集中",{money:10,career:5,trust:-9,intimacy:-6,mind:-9,progress:7},"资源增加，共同承担仍未成立"),
+          choice("我要的是同行者，不是赞助人，分手","结束资源充足却持续缺席的关系",{trust:-13,intimacy:-12,mind:9,progress:0},"你结束了与沈明的关系",null,{ending:"breakup"})
+        ]
+      };
+    }
+    return {
+      stage:"承诺期",title:"他想要孩子，却仍不肯确定住处",face:"周",place:"cafe",scene:"date",art:{sheet:"moments",cell:11},
+      copy:firstEcho+" 周屿说爱你，也说自己可能随时去另一座城市生活。此前的相处结果是「"+lesson+"」。孩子需要的不是保证永远浪漫，而是明天仍有人出现。",
+      choices:[
+        choice("确定三年住处和照护排班","自由保留，责任不再靠临场发挥",{money:6,career:3,trust:11,intimacy:5,support:6,progress:12},"周屿第一次给共同生活一个期限和地址"),
+        choice("接受两地生活，靠临时协调","亲密不减，照护风险继续漂浮",{trust:-7,intimacy:6,money:-6,support:-5,mind:-7,progress:6},"浪漫仍在，稳定地址仍然缺席"),
+        choice("我不能等你有一天愿意留下，分手","承认爱是真的，也承认它不足以共同养育",{trust:-10,intimacy:-16,mind:10,progress:0},"你结束了与周屿的关系",null,{ending:"breakup"})
+      ]
+    };
+  }
+
+  function soloOpeningEvent(){
+    return {
+      stage:"人生分岔期",title:"这轮约会后，你暂时没有选择任何人",face:"我",place:"cafe",scene:"date",art:{sheet:"moments",cell:10},
+      copy:"你没有为了赶时间勉强进入关系。空出来的位置并不等于什么都不发生：事业、爱情、身体和时间都会继续把人生推向不同方向。",
+      choices:[
+        choice("先把事业和钱做起来","让财富成为未来可以调用的选择权",{money:10,career:10,mind:4,progress:5},"你把三年交给事业和财富",function(){state.flags.soloTrack="wealth";state.flags.soloStart="财富先行";}),
+        choice("继续认识让自己心动的人","不预设对方性别，也不暂停孩子愿望",{intimacy:9,trust:5,support:4,progress:5},"你给新的爱情留下位置",function(){state.flags.soloTrack="love";state.flags.soloStart="保持心动";}),
+        choice("先不决定，让生活往前走","眼下最轻松，时间窗口继续变化",{career:5,mind:5,body:-5,progress:2},"你把决定交给了以后的自己",function(){state.flags.soloTrack="defer";state.flags.soloStart="继续推迟";})
+      ]
+    };
+  }
+
+  function soloTurningEvent(){
+    if(state.flags.soloTrack==="wealth"){
+      return {
+        stage:"事业跃迁期",title:"一笔大订单把你推到新的收入台阶",face:"账",place:"company",scene:"life",art:{sheet:"moments",cell:5},
+        copy:"三年里你没有停止生活。现在账户第一次足以覆盖住房、医疗和一年的照护成本，钱开始真的改变家庭选择。",
+        choices:[
+          choice("建立完整生育与照护基金","让财富从数字变成可执行的时间",{money:14,career:6,support:5,mind:5,progress:9},"你拥有了能支撑孩子计划的专项资产",function(){state.flags.fundReady=true;}),
+          choice("继续把全部精力押在增长上","财富继续增加，身体和时间被往后排",{money:18,career:9,body:-8,mind:-5,progress:4},"资产增长了，决定再次向后移动",function(){state.flags.fundReady=false;})
+        ]
+      };
+    }
+    if(state.flags.soloTrack==="love"){
+      return {
+        stage:"心动期",title:"画展开幕那晚，你遇见林然",face:"林",place:"cafe",scene:"date",art:{sheet:"nine",cell:6},
+        copy:"林然是纪录片剪辑师。她没有把你的孩子计划当成一场面试，只问：“如果以后有我，你希望我是爱人，还是也成为这个家的共同决定者？”",
+        choices:[
+          choice("约她再喝一杯，认真认识彼此","让心动进入真实关系，而不是替孩子找角色",{intimacy:13,trust:8,mind:6,progress:8},"你和林然开始约会",function(){state.flags.loveOpen=true;}, {response:"林然笑了：“先认识你，再谈我们能不能成为家。孩子不该是任何人被录取的理由。”"}),
+          choice("告诉她，现在只想做朋友","保留支持，也保留独立路线",{support:8,mind:5,intimacy:-2,progress:5},"林然成为可信任的朋友",function(){state.flags.loveOpen=false;})
+        ]
+      };
+    }
+    return {
+      stage:"时间流动期",title:"三十五岁生日，朋友又问起那个愿望",face:"友",place:"cafe",scene:"life",art:{sheet:"moments",cell:10},
+      copy:"这些年过得并不坏。工作稳定、朋友仍在，只是“以后再说”已经从一句缓冲变成一种生活方式。",
+      choices:[
+        choice("现在重新打开孩子计划","承认时间变化，从信息和支持重新开始",{mind:8,support:7,body:-2,progress:8},"你把愿望从以后拿回今天",function(){state.flags.soloReopened=true;}),
+        choice("我还没准备好，再过几年","继续保留可能，也继续消耗窗口",{career:6,mind:4,body:-10,progress:1},"决定再次被交给更晚的自己",function(){state.flags.soloReopened=false;})
+      ]
+    };
+  }
+
+  function soloRealityEvent(){
+    if(state.flags.soloTrack==="wealth"){
+      return {
+        stage:"生育信息期",title:"供精生育第一次变成一份具体方案",face:"医",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:3},
+        copy:"医生向你解释供精来源、法律边界、身体评估和后续照护。钱解决了费用，却不会替你选择捐精辅助生育是否适合自己。",
+        choices:[
+          choice("完成身体评估并了解供精流程","让愿望进入可以执行的医疗路径",{body:9,money:-8,mind:7,progress:12},"供精辅助生育成为真实选项",function(){state.flags.checkup=true;state.flags.donorReady=true;}),
+          choice("先冻存，继续等待更合适的时机","保留一部分可能，继续把生活重心放在事业",{money:-10,body:4,career:6,progress:6},"你买下更多时间，但还没有启动孩子计划",function(){state.flags.checkup=true;state.flags.donorReady=false;})
+        ]
+      };
+    }
+    if(state.flags.soloTrack==="love"){
+      return {
+        stage:"关系协商期",title:"林然问：你的孩子计划里会有我吗",face:"林",place:"cafe",scene:"date",art:{sheet:"collage",cell:3},
+        copy:state.flags.loveOpen?"关系变得认真之后，林然愿意一起了解女性伴侣家庭的医疗、法律和照护安排，但她不想因为爱你就被默认必须成为母亲。":"林然以朋友身份陪你去了一次咨询。她支持你的愿望，也尊重你独自决定。",
+        choices:[
+          choice("先谈共同责任，再决定共同生育","让爱情和成为父母成为两次清楚的同意",{trust:12,intimacy:9,support:7,progress:11},"林然愿意成为共同决定者",function(){state.flags.loveCommitted=true;state.flags.checkup=true;}, {response:"林然握住你的手：“我愿意和你谈成为家，但我们要把爱你、想不想做母亲，分别说清。”"}),
+          choice("保留爱情，孩子计划由自己承担","关系继续，不把生育责任自动交给伴侣",{trust:7,intimacy:7,mind:5,progress:8},"你和林然保留爱情，也保留独立生育决定",function(){state.flags.loveCommitted=false;state.flags.checkup=true;})
+        ]
+      };
+    }
+    return {
+      stage:"身体窗口期",title:"体检报告把“以后”换成了具体数字",face:"医",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:3},
+      copy:"医生没有替你决定，只说明自然受孕窗口已经明显收窄，辅助生育仍可评估，领养和共同养育也需要时间准备。",
+      choices:[
+        choice("完成复查，保留所有还能执行的路径","晚一点不等于没有选择，但需要现在行动",{body:8,money:-7,mind:7,progress:11},"你重新拿回一部分主动权",function(){state.flags.checkup=true;}),
+        choice("不想被数字催着走，继续原来的生活","保护当下的平静，也接受更多路径关闭",{career:6,mind:5,body:-12,progress:1},"你选择不在此刻启动孩子计划",function(){state.flags.checkup=false;})
+      ]
+    };
+  }
+
+  function soloSupportEvent(){
+    if(state.flags.soloTrack==="wealth"){
+      return {
+        stage:"家庭准备期",title:"钱够了，但凌晨三点该打给谁",face:"友",place:"service",scene:"path",art:{sheet:"nine",cell:6},
+        copy:"你能买到很好的医疗和照护服务，却仍需要非商业关系中的紧急联系人。一个人的经济能力，不等于一个人完成所有照顾。",
+        choices:[
+          choice("和三位朋友签下真实的照护约定","让财富之外也有人能接住你和孩子",{support:14,trust:6,mind:5,progress:10},"你的独立计划拥有了具体支持网",function(){state.flags.supportBuilt=true;}),
+          choice("只依赖付费服务","边界清晰，突发情况下仍然孤立",{money:-8,support:5,mind:-5,progress:5},"服务充足，关系支点仍然偏少",function(){state.flags.supportBuilt=false;})
+        ]
+      };
+    }
+    if(state.flags.soloTrack==="love"){
+      return {
+        stage:"家庭准备期",title:"两个女人要怎样被看见为一个家",face:"林",place:"service",scene:"path",art:{sheet:"collage",cell:3},
+        copy:state.flags.loveCommitted?"你和林然开始咨询共同居住、医疗知情、监护意愿和照护分工。爱让你们靠近，制度和责任需要另外一份清单。":"你准备独立推进，林然愿意作为伴侣或朋友进入支持名单，但不自动成为共同母亲。",
+        choices:[
+          choice("把医疗、财务和照护责任逐项写清","让这个家先在行动上成立",{trust:11,intimacy:7,support:10,money:-5,progress:10},"你们建立了可执行的女性伴侣家庭方案",function(){state.flags.supportBuilt=true;}),
+          choice("先相爱，手续和分工以后再说","亲密继续，关键责任仍然悬空",{intimacy:8,trust:-6,support:-3,mind:-5,progress:5},"爱情更深，家庭方案仍未落地",function(){state.flags.supportBuilt=false;})
+        ]
+      };
+    }
+    return {
+      stage:"晚年分岔期",title:"又一个五年被工作和日常填满",face:"我",place:"company",scene:"life",art:{sheet:"moments",cell:10},
+      copy:"你不是没有生活，也不是没有被爱。只是孩子仍然没有进入这个家，而可以执行的身体与时间余地越来越少。",
+      choices:[
+        choice("最后一次建立资金和支持方案","不保证成功，但让愿望得到一次真实行动",{money:8,support:10,mind:-3,progress:9},"你为最后一次孩子计划搭起支点",function(){state.flags.supportBuilt=true;}),
+        choice("接受这一生不再启动孩子计划","继续过自己的生活，也接受本局目标不会完成",{career:8,mind:7,progress:0},"你决定不再让孩子进入这段人生",function(){state.flags.retireLeaning=true;})
+      ]
+    };
+  }
+
+  function soloPathEvent(){
+    var choices=[];
+    var track=state.flags.soloTrack;
+    if(track==="wealth"){
+      choices.push(choice("使用供精完成单身辅助生育","由你做决定，让资金与支持网共同托住",{money:-14,body:-6,support:5,progress:18},"选择了供精单身辅助生育",function(){state.path="供精·单身辅助生育";}));
+      choices.push(choice("递交单身领养申请","让亲子关系从长期承诺开始",{money:-8,support:8,mind:5,progress:17},"选择了单身领养",function(){state.path="单身领养";}));
+      choices.push(choice("让财富继续增长，不再启动孩子计划","拥有很多选择，但不再把任何一种变成孩子",{career:8,money:10,mind:6,progress:0},"你选择了没有孩子进入家庭的人生",function(){state.path="没有孩子进入家庭";},{ending:"retirement"}));
+    }else if(track==="love"&&state.flags.loveCommitted){
+      choices.push(choice("与林然共同启动供精辅助生育","让两次清楚的同意成为共同家庭的起点",{trust:9,intimacy:7,money:-11,support:6,progress:18},"你和林然选择了供精辅助生育",function(){state.path="与林然·供精辅助生育";}));
+      choices.push(choice("与林然共同递交领养申请","用共同承诺建立女性伴侣家庭",{trust:9,support:10,money:-7,progress:17},"你和林然选择了共同领养",function(){state.path="与林然·共同领养";}));
+      choices.push(choice("选择彼此，但不再启动孩子计划","爱情继续，这一局的孩子目标停止",{intimacy:10,mind:7,progress:0},"你和林然选择了没有孩子的共同生活",function(){state.path="与林然相伴·没有孩子进入家庭";},{ending:"retirement"}));
+    }else{
+      choices.push(choice("现在启动供精辅助生育","不再等待伴侣，由自己完成决定",{money:-13,body:-7,support:5,progress:18},"选择了供精单身辅助生育",function(){state.path="供精·单身辅助生育";}));
+      choices.push(choice("递交单身领养申请","用长期承诺建立亲子关系",{money:-7,mind:5,support:8,progress:17},"选择了单身领养",function(){state.path="单身领养";}));
+      choices.push(choice("继续不作决定，让人生自然走下去","不再启动孩子路径，接受本局目标停止",{career:7,mind:6,progress:0},"你继续了没有孩子进入家庭的人生",function(){state.path="没有孩子进入家庭";},{ending:"retirement"}));
+    }
+    lockPathChoices(choices);
+    return {
+      stage:"路径选择期",title:"这一生，你最终把什么变成现实",face:track==="love"?"林":"路",place:"service",scene:"path",art:track==="love"?{sheet:"collage",cell:3}:{sheet:"plan",cell:9},
+      copy:"没有一种人生天然更高贵。但这一局的目标很具体：只有孩子进入家庭才算通关。你可以继续这个目标，也可以让这段人生走向别处。",
+      echo:"前序回响："+(track==="wealth"?"财富已经提供了选择权。":track==="love"?"爱情已经出现，但成为父母仍需要另一次同意。":"一次次推迟已经改变了可执行的路径。"),
+      choices:choices
+    };
+  }
+
+  function commonEvents(){
+    if(state.root.key==="solo"){
+      return [
+        soloOpeningEvent(),
+        soloTurningEvent(),
+        soloRealityEvent(),
+        soloSupportEvent(),
+        {
+          stage:"决定期",title:state.flags.soloTrack==="love"?"爱与孩子不必是同一个答案":"愿望必须从“以后”变成一个答案",face:state.flags.soloTrack==="love"?"林":"我",place:"cafe",scene:"date",art:state.flags.soloTrack==="love"?{sheet:"collage",cell:3}:state.flags.soloTrack==="wealth"?{sheet:"plan",cell:9}:{sheet:"moments",cell:10},
+          copy:state.flags.soloTrack==="love"?"你可以爱林然，也可以和她共同成为母亲，还可以保留独立生育。这些选择不应被混成一句“顺其自然”。":"你已经拥有足够信息。继续、改变或停止孩子计划，都会让这段人生走向不同结局。",
+          choices:[
+            choice("继续把孩子计划推进到路径选择","让下一步成为可执行决定",{mind:7,support:4,progress:10},"孩子计划进入最终选择",function(){state.flags.routeReady=true;}),
+            choice("再给自己一点时间","保留空间，也让部分路径继续收窄",{career:4,body:-6,mind:3,progress:4},"你又给了自己一个季节",function(){state.flags.routeReady=false;})
+          ]
+        },
+        soloPathEvent(),
+        finalEvent()
+      ];
+    }
+    return [
+      partnerOpeningEvent(),
+      partnerRhythmEvent(),
+      partnerRealityEvent(),
+      partnerFamilyEvent(),
+      partnerCommitEvent(),
+      pathEvent(),
+      finalEvent()
+    ];
+  }
+
+  function choice(title,sub,delta,note,run,options){
+    var item={title:title,sub:sub,delta:delta,note:note,run:run};
+    if(options) for(var key in options) item[key]=options[key];
+    return item;
+  }
+
+  function lockPathChoices(choices){
+    var criticalLabels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"照护网",mind:"心力"};
+    for(var i=0;i<choices.length;i++){
+      var c=choices[i];
+      if(c.ending) continue;
+      var criticalKeys=Object.keys(criticalLabels);
+      for(var j=0;j<criticalKeys.length;j++){
+        var metricKey=criticalKeys[j];
+        var projected=clamp(state.metrics[metricKey]+(c.delta[metricKey]||0));
+        if(projected<=32){
+          c.locked=true;
+          c.lockReason=criticalLabels[metricKey]+"选择后将降到 "+projected+"，这条路会立即中断";
+          break;
+        }
+      }
+      var projectedProgress=clamp(state.metrics.progress+(c.delta.progress||0));
+      if(!c.locked && projectedProgress<57){
+        c.locked=true;c.lockReason="选择后进度为 "+projectedProgress+"，距离孩子到来期还差 "+(57-projectedProgress);
+      }else if(!c.locked && /自然生育/.test(c.title) && state.metrics.body<42){
+        c.locked=true;c.lockReason="身体低于 42，先恢复身体或切换其他路径";
+      }else if(!c.locked && /辅助生育|供精/.test(c.title) && state.metrics.money<38){
+        c.locked=true;c.lockReason="资金低于 38，当前无法承担辅助生育方案";
+      }else if(!c.locked && /领养/.test(c.title) && state.metrics.support<45){
+        c.locked=true;c.lockReason="照护网低于 45，领养预评估尚未通过";
+      }else if(!c.locked && /共同养育/.test(c.title) && state.metrics.support<50){
+        c.locked=true;c.lockReason="照护网低于 50，共养契约缺少稳定支点";
+      }
+    }
+  }
+
+  function pathEvent(){
+    var echoBits=[];
+    echoBits.push(state.flags.wishClear?"第一次约会说清的愿望，已经变成共同决策。":"第一次约会没有说透的愿望，在这一刻增加了协商成本。");
+    if(state.root.key==="chen") echoBits.push(state.flags.familyBoundary?"陈牧已经能和你共同守住父母边界。":"陈牧的父母仍然会进入小家庭的决定。");
+    else if(state.root.key==="shen") echoBits.push(state.flags.familyBoundary?"没有父母托底，你们主动建立了照护网。":"付费服务仍未完全填补关系支点。");
+    else echoBits.push(state.flags.familyBoundary?"孩子的住处和照护底线已经写清。":"自由仍然没有变成稳定的照护地址。");
+    echoBits.push(state.flags.checkup?"按时完成的复查保留了更多技术选择。":"被推迟的复查缩窄了身体与时间余地。");
+    var naturalBody=state.flags.checkup?-3:-11;
+    var choices=[
+      choice("进入自然生育窗口","按身体节奏开始尝试",{body:naturalBody,trust:5,intimacy:4,mind:3,progress:15},"选择了共同自然生育",function(){state.path="共同自然生育";}),
+      choice("启动辅助生育方案","用技术扩大时间与可能性",{money:-12,body:-5,mind:-2,progress:17},"选择了共同辅助生育",function(){state.path="共同辅助生育";}),
+      choice("递交领养预申请","让亲子关系从承诺开始",{money:-6,support:8,mind:4,progress:16},"选择了共同领养",function(){state.path="共同领养";})
+    ];
+    lockPathChoices(choices);
+    if(!choices.some(function(item){return !item.locked;})){
+      choices.push(choice("本轮准备不足，重新规划","没有一条孩子路径能在当前资源下安全执行",{progress:-100},"本轮没有形成可执行的孩子路径",function(){state.path="未形成可执行路径";}));
+    }
+    return {stage:"路径选择期",title:"确定孩子进入家庭的路径",face:"路",
+      copy:"路径没有高低，只有条件不同。你已经拥有足够信息，现在把资源集中到一条能执行的路上。",
+      echo:"前序回响："+echoBits.join(" "),
+      choices:choices};
+  }
+
+  function finalEvent(){
+    var p=state.path;
+    if(p.indexOf("领养")>=0){
+      return {stage:"抵达期",title:"交接日的门在面前打开",face:"家",
+        copy:"材料、评估和等待都已完成。社工带着孩子走进房间，你准备的住处、时间与支持网，从这一刻起有了具体的名字。",
+        choices:[
+          choice("完成今天的家庭交接","让承诺从此刻开始生效",{support:6,mind:8,progress:25},"孩子正式进入了这个家"),
+          choice("请支持网一起迎接孩子","让新家庭从第一天就不孤立",{support:12,mind:5,money:-3,progress:25},"大家一起把孩子迎进家门")
+        ]};
+    }
+    if(p.indexOf("共同养育")>=0){
+      return {stage:"抵达期",title:"孩子在清晨平安到来",face:"家",
+        copy:"协议、居住、财务与紧急联系人早已确认。今天，孩子真正来到这群成年人中间，所有写在纸上的责任开始进入生活。",
+        choices:[
+          choice("让每个人接住自己的部分","共同养育从今天正式开始",{trust:8,support:9,progress:25},"孩子进入共同养育家庭"),
+          choice("把孩子抱到大家中间","让支持网成为孩子的第一份礼物",{mind:5,support:10,progress:25},"大家一起迎接孩子进入家庭")
+        ]};
+    }
+    if(p.indexOf("辅助")>=0){
+      return {stage:"抵达期",title:"产房外的天刚刚亮",face:"医",
+        copy:"评估、治疗、等待与反复调整都走到了尽头。孩子平安出生，技术没有替你做决定，它帮助你的决定真正抵达了生命。",
+        choices:[
+          choice("把孩子抱进怀里","让家庭从这一刻正式开始",{trust:6,support:8,mind:8,progress:25},"孩子平安进入家庭"),
+          choice("让最亲近的人一起迎接","让支持从第一天真正到位",{body:4,mind:8,support:10,progress:25},"孩子被大家迎进家庭")
+        ]};
+    }
+    return {stage:"抵达期",title:"孩子的哭声在清晨响起",face:"家",
+      copy:"经历怀孕、等待与照顾之后，孩子平安出生。它不是命运奖赏，而是身体、关系、资源和一次次协商共同抵达的结果。",
+      choices:[
+        choice("把孩子抱进这个家","让共同照顾清单从今天生效",{trust:8,support:8,progress:25},"孩子平安进入家庭"),
+        choice("让支持网一起迎接孩子","让你的安全排在所有期待之前",{body:8,mind:7,support:6,progress:25},"孩子被大家迎进家庭")
+      ]};
+  }
+
+  function getEvents(){
+    return commonEvents();
+  }
+
+  function startFrom(key){
+    state=createState(key);
+    busy=false;
+    show("v3-game");
+    renderAll();
+  }
+
+  function showOriginConfirm(key){
+    var root=roots[key];
+    if(!root) return;
+    pendingOriginKey=key;
+    var person=document.getElementById("v3-confirm-person");
+    person.className="v3-confirm-person v3-sprite v3-sprite-"+key;
+    document.getElementById("v3-confirm-scene").className="v3-confirm-scene v3-confirm-env-"+key;
+    document.getElementById("v3-confirm-tag").textContent="同行者 · "+root.name+" · "+root.tag;
+    document.getElementById("v3-confirm-quote").textContent="“"+root.quote+"”";
+    renderProfileSheet();
+    show("v3-confirm");
+  }
+
+  function renderProfileSheet(){
+    var root=roots[pendingOriginKey]||roots.solo;
+    document.getElementById("v4-profile-age").textContent=playerProfile.age+" 岁";
+    document.getElementById("v4-profile-career").textContent=profileOptions.career[playerProfile.career];
+    document.getElementById("v4-profile-money").textContent=(Math.round(root.start.money*500)).toLocaleString("zh-CN")+" 元";
+    document.getElementById("v4-profile-interest").textContent=profileOptions.interest[playerProfile.interest];
+    document.getElementById("v4-profile-wish").textContent=profileOptions.wish[playerProfile.wish];
+    document.getElementById("v4-profile-goal").textContent=profileOptions.goal[playerProfile.goal];
+  }
+
+  function adjustProfile(field,dir){
+    if(field==="age"){
+      playerProfile.age=Math.max(22,Math.min(39,playerProfile.age+dir));
+    }else if(profileOptions[field]){
+      var list=profileOptions[field];
+      playerProfile[field]=(playerProfile[field]+dir+list.length)%list.length;
+    }
+    renderProfileSheet();
+  }
+
+  function renderAll(){
+    busy=false;
+    renderHeader();
+    renderMeters();
+    renderPath();
+    renderLogs();
+    renderInventory();
+    renderEvent();
+  }
+
+  function renderHeader(){
+    document.getElementById("v3-avatar").textContent=state.root.key==="solo"?"我":state.root.name.charAt(0);
+    document.getElementById("v3-avatar").style.background=state.root.portrait;
+    document.getElementById("v3-player-name").textContent=state.root.key==="solo"?"我的孩子计划":"我与"+state.root.name;
+    document.getElementById("v3-player-route").textContent=state.path==="尚未确定"?"生育路径准备中":state.path;
+    document.getElementById("v3-date").textContent=season(state.step+(state.elapsed||0));
+  }
+
+  function renderMeters(changed){
+    var html="";
+    for(var i=0;i<metricMeta.length;i++){
+      var meta=metricMeta[i], key=meta[0], val=state.metrics[key], change=changed&&changed[key]||0;
+      var pulse=change>0?" is-gain":(change<0?" is-loss":"");
+      html+='<button type="button" class="v3-meter'+pulse+'" data-v4-metric="'+key+'" aria-label="查看'+meta[1]+'详情，当前 '+Math.round(val)+(change?", 本次变化 "+(change>0?"+":"")+change:"")+'"><div class="v3-meter-head"><span>'+meta[1]+'</span><b>'+Math.round(val)+'</b></div><div class="v3-meter-track"><div class="v3-meter-fill" style="--meter:'+meta[2]+';width:'+val+'%"></div></div></button>';
+    }
+    document.getElementById("v3-meters").innerHTML=html;
+  }
+
+  function renderPath(){
+    var stages=["约会起点","现实磨合","家庭协商","路径选择","孩子到来"];
+    var currentStage=state.step>=6?4:(state.step>=5?3:(state.step>=3?2:(state.step>=1?1:0)));
+    var html="";
+    for(var i=0;i<stages.length;i++){
+      var cls=i<currentStage?"is-done":(i===currentStage?"is-now":"");
+      html+='<div class="v3-path-step '+cls+'"><b>'+(i<currentStage?"✓":(i+1))+'</b><span>'+stages[i]+'</span></div>';
+    }
+    document.getElementById("v3-path-list").innerHTML=html;
+    var goals=state.root.key==="solo"
+      ?["选择这段人生先走向哪里","让财富、爱情或时间真正发生","看清身体与生育信息","建立能接住生活的支点","决定是否继续孩子目标","选定或停止孩子路径","迎接孩子进入家庭"]
+      :["说清生育愿望","验证真实分工","看清身体与资源","建立家庭边界","确认可执行承诺","选定孩子路径","迎接孩子进入家庭"];
+    document.getElementById("v3-goal").textContent=goals[Math.min(state.step,goals.length-1)];
+    document.getElementById("v3-bottom-path").textContent=state.root.key==="solo"
+      ?"独立生活 → "+(state.flags.soloTrack==="love"?"心动与关系":state.flags.soloTrack==="wealth"?"事业与财富":"时间流动")+" → "+(state.path==="尚未确定"?"人生决定":state.path)+" → "+(state.path.indexOf("没有孩子")>=0?"未通关":"孩子进入家庭")
+      :"约会 → 相处 → 家庭协商 → "+(state.path==="尚未确定"?"路径选择":state.path)+" → 孩子进入家庭";
+  }
+
+  function renderLogs(){
+    var list=state.logs.slice(-4).reverse(), html="";
+    for(var i=0;i<list.length;i++) html+='<div class="v3-log-item">'+list[i]+'</div>';
+    document.getElementById("v3-log-list").innerHTML=html;
+  }
+
+  function deriveInventory(){
+    var items=[
+      {id:"identity",icon:"证",name:"身份证",detail:"基础身份凭证。每条家庭路径都从一个有主体性的人开始。",source:"开局持有"},
+      {id:"health",icon:"医",name:"医保卡",detail:"医疗信息与生育方案的基础入口。",source:"开局持有"},
+      {id:"money",icon:"金",name:"存款记录",detail:"当前资金 "+Math.round(state.metrics.money)+"。它会影响辅助生育和家庭缓冲。",source:"随资金实时更新"},
+      {id:"calendar",icon:"历",name:"人生日历",detail:"当前 "+season(state.step+(state.elapsed||0))+"，正在经历第 "+(state.history.length+1)+" 个关键事件。",source:"随进度实时更新"}
+    ];
+    if(state.flags.checkup) items.push({id:"checkup",icon:"检",name:"体检报告",detail:"身体信息已被确认，技术与时间选择不再只靠猜。",source:"完成复查后获得"});
+    if(state.flags.supportBuilt||state.metrics.support>=55) items.push({id:"support",icon:"友",name:"支持名单",detail:"陪诊、临时照护与紧急联系人已经有了具体人选。",source:"照护网达到 55 或建立支持承诺"});
+    if(state.flags.fundReady||state.metrics.money>=65) items.push({id:"fund",icon:"储",name:"生育储备",detail:"已为医疗、手续、住房与照护留出专项缓冲。",source:"资金达到 65 或建立专项账户"});
+    if(state.flags.familyBoundary) items.push({id:"boundary",icon:"界",name:state.root.key==="shen"?"照护协议":state.root.key==="zhou"?"固定照护地址":"家庭边界",detail:state.root.key==="shen"?"没有父母托底，你们主动建立了朋友与专业服务共同组成的照护网。":state.root.key==="zhou"?"成年人可以流动，但孩子的住处与照护底线已经确定。":"伴侣与你已经共同说明父母的支持方式与进入边界。",source:"完成关键协商后获得"});
+    if(state.path!=="尚未确定") items.push({id:"route",icon:"路",name:state.path,detail:"这一局已经把资源集中到一条可执行的孩子路径。",source:"路径选择期获得"});
+    return items;
+  }
+
+  function renderInventory(){
+    var items=deriveInventory();
+    var html="";
+    for(var i=0;i<items.length;i++) html+='<button type="button" class="v4-inventory-item" data-v4-item="'+items[i].id+'" aria-label="查看'+escapeHtml(items[i].name)+'"><b>'+escapeHtml(items[i].icon)+'</b><span>'+escapeHtml(items[i].name)+'</span></button>';
+    document.getElementById("v4-inventory").innerHTML=html;
+  }
+
+  function activePlace(event){
+    if(event&&event.place) return event.place;
+    if(/领养|共同养育|路径|交接|支持网/.test(event.title)) return "service";
+    if(/约会|同行者|未来放上桌|承诺|共同生活|同一张表/.test(event.title)) return "cafe";
+    if(/晋升|工作|职业/.test(event.title)) return "company";
+    if(/体检|医生|复查|产房|辅助/.test(event.title)) return "hospital";
+    if(/父母|钥匙|家庭/.test(event.title)) return "parents";
+    if(/房租|费用|预算|账户/.test(event.title)) return "company";
+    return "cafe";
+  }
+
+  function renderTown(event){
+    var place=activePlace(event);
+    var buttons=document.querySelectorAll("[data-v4-place]");
+    for(var i=0;i<buttons.length;i++){
+      var key=buttons[i].getAttribute("data-v4-place");
+      buttons[i].classList.toggle("is-active",key===place);
+      buttons[i].setAttribute("aria-current",key===place?"location":"false");
+    }
+  }
+
+  function currentGameEvent(){
+    if(!state) return null;
+    var events=getEvents();
+    return events[Math.min(state.step,events.length-1)]||null;
+  }
+
+  function metricDefinition(key){
+    var descriptions={
+      money:"医疗、手续、住房与照护都需要缓冲。资金不是幸福本身，但会决定哪些方案此刻可执行。",
+      career:"事业提供长期收入与身份支点，也会与陪伴时间发生真实碰撞。",
+      body:"身体信息决定自然生育窗口，也影响辅助生育过程中的承受余地。",
+      trust:"共识代表你们是否把孩子、责任、边界和风险说清楚。",
+      intimacy:"亲密不是一句喜欢，而是在压力之下仍愿意靠近和理解。",
+      support:"照护网是能陪诊、临时接手和在紧急时出现的具体人。",
+      mind:"心力代表你还能不能继续协商、等待和照顾自己。",
+      progress:"生育进度汇总了信息、承诺和行动。达到 57 才能进入路径，最终需要 82。"
+    };
+    var thresholds={
+      money:"辅助生育建议资金不低于 38",
+      career:"低于或等于 32，本局会中断",
+      body:"自然生育需要身体不低于 42",
+      trust:"低于或等于 32，本局会中断",
+      intimacy:"低于或等于 32，本局会中断",
+      support:"领养需 45，共同养育需 50",
+      mind:"低于或等于 32，本局会中断",
+      progress:"57 解锁路径，82 完成抵达"
+    };
+    for(var i=0;i<metricMeta.length;i++){
+      if(metricMeta[i][0]===key) return {key:key,name:metricMeta[i][1],color:metricMeta[i][2],description:descriptions[key],threshold:thresholds[key]};
+    }
+    return null;
+  }
+
+  function recentMetricChange(key){
+    for(var i=state.history.length-1;i>=0;i--){
+      var item=state.history[i];
+      if(item.delta[key]) return {event:item.eventTitle,choice:item.choiceTitle,delta:item.delta[key]};
+    }
+    return null;
+  }
+
+  function renderMetricPanel(key){
+    var meta=metricDefinition(key);
+    if(!meta) return "<p>这项资源还没有资料。</p>";
+    var value=Math.round(state.metrics[key]);
+    var initial=Math.round(state.root.start[key]);
+    var recent=recentMetricChange(key);
+    var danger=key!=="progress"&&value<=32;
+    var good=key==="progress"?value>=57:value>=55;
+    var status=danger?"危险":(good?"稳定":"需要留意");
+    return '<p class="v4-panel-lead">'+escapeHtml(meta.description)+'</p>'+
+      '<div class="v4-panel-grid"><section class="v4-panel-card is-wide"><div class="v4-panel-status '+(danger?"is-danger":(good?"is-good":""))+'">'+status+'</div><div class="v4-panel-value">'+value+' / 100</div><div class="v4-panel-meter" style="--panel-meter:'+meta.color+'"><i style="width:'+value+'%"></i></div><ul class="v4-detail-list"><li>开局数值：'+initial+'，目前变化：'+(value-initial>=0?"+":"")+(value-initial)+'</li><li>关键门槛：'+escapeHtml(meta.threshold)+'</li><li>'+(recent?'最近变化：在「'+escapeHtml(recent.event)+'」选择「'+escapeHtml(recent.choice)+'」，'+(recent.delta>0?"+":"")+recent.delta:'还没有事件改变这项资源')+'</li></ul></section></div>';
+  }
+
+  function renderProfilePanel(){
+    var root=state.root;
+    var opening=root.key==="solo"?"暂不选择伴侣，孩子计划独立启动":"与 "+root.name+" 从认真约会开始";
+    return '<p class="v4-panel-lead">这是这一局真正生效的人生入口，不是装饰性角色卡。</p>'+
+      '<div class="v4-panel-grid"><section class="v4-panel-card is-current"><h3>'+escapeHtml(root.name)+'</h3><p>'+escapeHtml(root.tag)+'</p><small>'+escapeHtml(opening)+'</small></section>'+
+      '<section class="v4-panel-card"><h3>当前目标</h3><p>'+escapeHtml(document.getElementById("v3-goal").textContent)+'</p><small>第 '+(state.history.length+1)+' 个关键事件</small></section>'+
+      '<section class="v4-panel-card is-wide"><h3>这一局的性格与资源起点</h3><p>'+escapeHtml(root.intro)+'</p><small>“'+escapeHtml(root.quote)+'”</small></section></div>';
+  }
+
+  function renderInventoryPanel(selectedId){
+    var items=deriveInventory(), html='<p class="v4-panel-lead">物品不是加数值的道具，而是你已经完成哪些准备的凭证。每一项都来自真实事件和当前资源。</p><div class="v4-panel-grid">';
+    for(var i=0;i<items.length;i++){
+      var item=items[i];
+      html+='<section class="v4-panel-card '+(item.id===selectedId?"is-current":"")+'"><h3>'+escapeHtml(item.icon+" · "+item.name)+'</h3><p>'+escapeHtml(item.detail)+'</p><small>'+escapeHtml(item.source)+'</small></section>';
+    }
+    return html+'</div>';
+  }
+
+  function renderRelationshipPanel(){
+    var bits=[];
+    if(state.root.key==="solo"){
+      var relationText=state.flags.soloTrack==="love"?(state.flags.loveCommitted?"林然愿意和你共同讨论成为母亲":"生命里出现了让你心动的林然"):(state.flags.afterBreakup?"结束与 "+state.flags.afterBreakup+" 的关系，独立准备中":"暂不选择伴侣，独立生活中");
+      bits.push({title:"当前关系状态",text:relationText,note:"伴侣不是通关条件"});
+      bits.push({title:"支持网络",text:state.flags.supportBuilt?"已经确认具体照护承诺":"仍需要把“有人支持”变成具体分工",note:"照护网 "+Math.round(state.metrics.support)});
+      bits.push({title:"这段人生先走向",text:state.flags.soloStart||"还没有决定",note:state.flags.soloTrack==="wealth"?"事业与财富":state.flags.soloTrack==="love"?"爱情与家庭":"时间仍在流动"});
+    }else{
+      bits.push({title:"当前同行者",text:state.root.name+" · "+state.root.tag,note:"从约会开始"});
+      bits.push({title:"共识",text:state.flags.wishClear?"生育愿望已经说清":"仍有关键愿望没有完全说透",note:"共识 "+Math.round(state.metrics.trust)});
+      bits.push({title:"现实承诺",text:state.flags.partnerLesson||"尚未经过现实磨合",note:state.flags.familyBoundary?"家庭边界已经共同建立":"家庭边界仍待协商"});
+      bits.push({title:"亲密余量",text:state.metrics.intimacy>=55?"压力下仍保有连接":"关系需要被重新照顾",note:"亲密 "+Math.round(state.metrics.intimacy)});
+    }
+    var latest=state.history[state.history.length-1];
+    if(latest&&latest.response) bits.push({title:"最近一次回声",text:latest.response,note:"被记住 · "+latest.note});
+    var html='<p class="v4-panel-lead">关系页记录的不是“有没有对象”，而是谁在承担、哪些话已经说清、还有什么风险。</p><div class="v4-panel-grid">';
+    for(var i=0;i<bits.length;i++) html+='<section class="v4-panel-card"><h3>'+escapeHtml(bits[i].title)+'</h3><p>'+escapeHtml(bits[i].text)+'</p><small>'+escapeHtml(bits[i].note)+'</small></section>';
+    return html+'</div>';
+  }
+
+  function renderHistoryPanel(){
+    if(!state.history.length) return '<p class="v4-panel-lead">人生刚刚开始。完成第一个选择后，这里会记录地点、事件、选择与资源变化。</p><section class="v4-panel-card"><h3>起点</h3><p>'+escapeHtml(state.logs[0])+'</p></section>';
+    var placeNames={cafe:"咖啡馆",company:"公司",hospital:"医院",parents:"父母家",service:"家庭服务中心"};
+    var html='<p class="v4-panel-lead">这里保留完整人生轨迹，不只显示最后一句结果。</p><div class="v4-history-list">';
+    for(var i=state.history.length-1;i>=0;i--){
+      var item=state.history[i], changes=deltaText(item.delta);
+      if(item.delta.progress) changes+=(changes?" · ":"")+"进度 "+(item.delta.progress>0?"+":"")+item.delta.progress;
+      html+='<article class="v4-history-item"><div class="v4-history-index">'+(i+1)+'</div><div class="v4-history-copy"><b>'+escapeHtml(item.eventTitle+" → "+item.choiceTitle)+'</b><span>'+escapeHtml(placeNames[item.place]||"人生现场")+' · '+escapeHtml(changes||"资源未变化")+'</span><span>'+escapeHtml(item.note)+'</span>'+(item.response?'<span>回声 · '+escapeHtml(item.response)+'</span>':'')+'</div></article>';
+    }
+    return html+'</div>';
+  }
+
+  function renderRoutePanel(){
+    var stageNames=["约会起点","现实磨合","家庭协商","路径选择","孩子到来"];
+    var currentStage=state.step>=6?4:(state.step>=5?3:(state.step>=3?2:(state.step>=1?1:0)));
+    var html='<p class="v4-panel-lead">孩子是唯一通关目标；伴侣、血缘和家庭形式都只是不同路径。路线是否可走，由你此前积累的资源决定。</p><div class="v4-panel-grid">';
+    for(var i=0;i<stageNames.length;i++) html+='<section class="v4-panel-card '+(i===currentStage?"is-current":(i>currentStage?"is-locked":""))+'"><h3>'+(i<currentStage?"✓ ":"")+(i+1)+" · "+stageNames[i]+'</h3><p>'+(i<currentStage?"已完成":(i===currentStage?"你正在这里":"尚未抵达"))+'</p></section>';
+    html+='</div>';
+    if(state.path!=="尚未确定"){
+      return html+'<section class="v4-panel-card is-current" style="margin-top:12px"><h3>当前已选路线 · '+escapeHtml(state.path)+'</h3><p>下一步只剩让孩子真正进入家庭。</p><small>生育进度 '+Math.round(state.metrics.progress)+' / 100</small></section>';
+    }
+    var preview=(state.root.key==="solo"?soloPathEvent():pathEvent()).choices.filter(function(item){return item.title!=="本轮准备不足，重新规划";});
+    html+='<h3 style="margin:17px 0 9px">可执行性预览</h3><div class="v4-panel-grid">';
+    for(var j=0;j<preview.length;j++){
+      var route=preview[j];
+      html+='<section class="v4-panel-card '+(route.locked?"is-locked":"is-current")+'"><h3>'+(route.locked?"锁定 · ":"可行 · ")+escapeHtml(route.title)+'</h3><p>'+escapeHtml(route.locked?route.lockReason:route.sub)+'</p><small>'+escapeHtml(deltaText(route.delta))+' · 进度 '+(route.delta.progress>0?"+":"")+route.delta.progress+'</small></section>';
+    }
+    return html+'</div>';
+  }
+
+  function renderPlacePanel(place){
+    var placeMeta={
+      cafe:{name:"咖啡馆",copy:"关系开始、重新约会和把未来放上桌的地方。"},
+      company:{name:"公司",copy:"事业、时间、房租与家庭预算发生碰撞的地方。"},
+      hospital:{name:"医院",copy:"身体信息与生育技术方案变得具体的地方。"},
+      parents:{name:"父母家",copy:"支持能否进入、边界如何建立的地方。"},
+      service:{name:"家庭服务中心",copy:"领养、共同养育与支持网路径的正式入口。"}
+    };
+    var meta=placeMeta[place]||{name:"未知地点",copy:"这个地点尚未开放。"};
+    var event=currentGameEvent(), current=event&&activePlace(event)===place;
+    var visits=state.history.filter(function(item){return item.place===place;});
+    var html='<p class="v4-panel-lead">'+escapeHtml(meta.copy)+'</p><section class="v4-panel-card '+(current?"is-current":"")+'"><div class="v4-panel-status '+(current?"is-good":"")+'">'+(current?"当前事件所在地":"本回合不在这里")+'</div><h3>'+(current?escapeHtml(event.title):"查看地点记录")+'</h3><p>'+(current?escapeHtml(event.copy):"当前事件发生在「"+escapeHtml(placeMeta[activePlace(event)].name)+"」。你仍可查看这里曾经发生过什么。")+'</p><small>已留下 '+visits.length+' 条人生记录</small></section>';
+    if(visits.length){
+      html+='<h3 style="margin:17px 0 9px">在这里发生过</h3><ul class="v4-detail-list">';
+      for(var i=visits.length-1;i>=0;i--) html+='<li><b>'+escapeHtml(visits[i].eventTitle)+'</b><br>'+escapeHtml(visits[i].choiceTitle+" · "+visits[i].note)+'</li>';
+      html+='</ul>';
+    }
+    return html+'<div class="v4-panel-actions"><button class="v3-btn" data-v4-focus-event>回到当前事件</button></div>';
+  }
+
+  function renderSystemHub(){
+    var event=currentGameEvent();
+    var currentPlace=event?activePlace(event):"cafe";
+    var placeNames={cafe:"咖啡馆",company:"公司",hospital:"医院",parents:"父母家",service:"家庭服务中心"};
+    var warningCount=0;
+    for(var i=0;i<metricMeta.length-1;i++) if(state.metrics[metricMeta[i][0]]<=42) warningCount+=1;
+    var stageNames=["约会起点","现实磨合","家庭协商","路径选择","孩子到来"];
+    var currentStage=state.step>=6?4:(state.step>=5?3:(state.step>=3?2:(state.step>=1?1:0)));
+    var routeCopy=state.path==="尚未确定"?stageNames[currentStage]:state.path;
+    var inventoryCount=deriveInventory().length;
+    var relationship=state.root.key==="solo"?(state.flags.loveCommitted?"与林然共同准备家庭":state.flags.loveOpen?"与林然相识":"独立生活"):"与 "+state.root.name+" 同行";
+    return '<section class="v7-now-card"><div class="v3-kicker">现在发生的事</div><h3>'+escapeHtml(event?event.title:"人生刚刚开始")+'</h3><p>状态只回答三个问题：我还承受得起吗？谁会真正出现？孩子路径还能不能执行？</p><div class="v7-now-tags"><span>'+escapeHtml(relationship)+'</span><span>'+escapeHtml(placeNames[currentPlace])+'</span><span>'+escapeHtml(routeCopy)+'</span></div></section>'+
+      '<div class="v7-status-list">'+
+        '<button class="v7-status-row" data-v6-panel="resources"><b>生活余量</b><span>钱、身体和心力是否还能接住下一次选择。</span><small>'+(warningCount?warningCount+" 项吃紧":"仍有余地")+'</small></button>'+
+        '<button class="v7-status-row" data-v6-panel="relation"><b>谁会出现</b><span>爱人、朋友与家人分别承诺了什么。</span><small>'+(state.history.length?"有新回声":"尚未验证")+'</small></button>'+
+        '<button class="v7-status-row" data-v6-panel="inventory"><b>已经准备好</b><span>体检、资金、协议和照护名单等真实凭证。</span><small>'+inventoryCount+' 项</small></button>'+
+        '<button class="v7-status-row" data-v6-panel="map"><b>事情发生在哪</b><span>回看关系、工作、医院和家庭服务现场。</span><small>'+escapeHtml(placeNames[currentPlace])+'</small></button>'+
+        '<button class="v7-status-row" data-v6-panel="history"><b>这些选择留下了什么</b><span>完整回看每次决定、回应与后果。</span><small>'+state.history.length+' 次选择</small></button>'+
+        '<button class="v7-status-row" data-v6-panel="route"><b>孩子路线</b><span>查看还能执行的路径，以及现在缺什么。</span><small>'+escapeHtml(routeCopy)+'</small></button>'+
+      '</div>';
+  }
+
+  function renderResourcesOverview(){
+    var html='<p class="v4-panel-lead">资源只在两个时刻值得看：选择反馈出现变化时，或你需要判断下一条孩子路径能不能执行时。点击任一项查看门槛和最近变化。</p><div class="v6-overview-grid">';
+    for(var i=0;i<metricMeta.length;i++){
+      var meta=metricMeta[i], key=meta[0], value=Math.round(state.metrics[key]);
+      var danger=key!=="progress"&&value<=32;
+      var note=key==="progress"?(value>=57?"已具备进入路径选择的基础":"达到 57 才能进入路径选择"):(danger?"已经触发中断线":"低于或等于 32 会中断");
+      html+='<button class="v6-overview-card '+(danger?"is-danger":"")+'" data-v4-metric="'+key+'"><span class="v6-overview-head"><b>'+meta[1]+'</b><b>'+value+'</b></span><span class="v4-panel-meter" style="--panel-meter:'+meta[2]+'"><i style="width:'+value+'%"></i></span><p>'+note+'</p></button>';
+    }
+    return html+'</div>';
+  }
+
+  function renderMapOverview(){
+    var event=currentGameEvent();
+    var current=event?activePlace(event):"cafe";
+    var places=[
+      ["cafe","咖啡馆","约会、重新认识和把未来放上桌。"],
+      ["company","公司","工作、收入、时间与家庭计划发生碰撞。"],
+      ["hospital","医院","身体信息和生育技术变得具体。"],
+      ["parents","父母家","支持、边界和代际协商真正落地。"],
+      ["service","家庭服务中心","领养、共同养育和照护网的正式入口。"]
+    ];
+    var html='<p class="v4-panel-lead">地图不是自由移动按钮。它帮助你理解：生育并不只发生在医院，还发生在工作、关系、家庭和公共支持系统里。</p><div class="v6-overview-grid">';
+    for(var i=0;i<places.length;i++){
+      var visits=state.history.filter((function(place){return function(item){return item.place===place;};})(places[i][0])).length;
+      html+='<button class="v6-overview-card '+(places[i][0]===current?"is-current":"")+'" data-v4-place="'+places[i][0]+'"><span class="v6-overview-head"><b>'+places[i][1]+'</b><b>'+(places[i][0]===current?"当前":"")+'</b></span><p>'+places[i][2]+'<br>已留下 '+visits+' 条记录</p></button>';
+    }
+    return html+'</div>';
+  }
+
+  function panelDefinition(type,payload){
+    if(type==="hub") return {kicker:"按需打开",title:"这一刻",body:renderSystemHub()};
+    if(type==="resources") return {kicker:"现实余地",title:"生活余量",body:renderResourcesOverview()};
+    if(type==="map") return {kicker:"发生在哪里",title:"人生地图",body:renderMapOverview()};
+    if(type==="profile") return {kicker:"人物档案",title:"人物档案",body:renderProfilePanel()};
+    if(type==="inventory") return {kicker:"人生背包",title:"人生背包",body:renderInventoryPanel(payload)};
+    if(type==="relation") return {kicker:"关系与承诺",title:"关系与承诺",body:renderRelationshipPanel()};
+    if(type==="history") return {kicker:"人生志",title:"完整人生志",body:renderHistoryPanel()};
+    if(type==="route") return {kicker:"家庭路线",title:"当前路线",body:renderRoutePanel()};
+    if(type==="metric"){
+      var metric=metricDefinition(payload);
+      return {kicker:"资源详情",title:metric?metric.name+"资源":"资源详情",body:renderMetricPanel(payload)};
+    }
+    if(type==="place"){
+      var names={cafe:"咖啡馆",company:"公司",hospital:"医院",parents:"父母家",service:"家庭服务中心"};
+      return {kicker:"人生地图",title:names[payload]||"人生地图",body:renderPlacePanel(payload)};
+    }
+    return {kicker:"人生系统",title:"人生系统",body:""};
+  }
+
+  function openSystemPanel(type,payload){
+    if(!state) return;
+    state.ui={panel:type,payload:payload||null};
+    var panel=panelDefinition(type,payload);
+    document.getElementById("v4-system-kicker").textContent=panel.kicker;
+    document.getElementById("v4-system-title").textContent=panel.title;
+    document.getElementById("v4-system-body").innerHTML=(type==="hub"?"":'<button class="v6-hub-back" data-v6-panel="hub">← 返回这一刻</button>')+panel.body;
+    var overlay=document.getElementById("v4-system-overlay");
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden","false");
+    document.body.classList.add("v4-panel-open");
+    var map={profile:"profile",inventory:"inventory",relation:"relation",history:"life-log",route:"route-status"};
+    var quick=document.querySelectorAll(".v3-quickbar [data-v3-action]");
+    for(var i=0;i<quick.length;i++) quick[i].classList.toggle("is-active",quick[i].getAttribute("data-v3-action")===map[type]);
+    window.setTimeout(function(){var close=document.querySelector("[data-v4-close]");if(close) close.focus();},0);
+  }
+
+  function closeSystemPanel(){
+    var overlay=document.getElementById("v4-system-overlay");
+    if(!overlay) return;
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden","true");
+    document.body.classList.remove("v4-panel-open");
+    var quick=document.querySelectorAll(".v3-quickbar [data-v3-action]");
+    for(var i=0;i<quick.length;i++) quick[i].classList.remove("is-active");
+    if(state&&state.ui) state.ui={panel:null,payload:null};
+  }
+
+  function spriteForFace(face){
+    var map={"陈":"chen","沈":"shen","周":"zhou","我":"solo","林":"friend","友":"friend","医":"doctor","家":"family","账":"solo","新":"friend","路":"social"};
+    return map[face]||state.root.key;
+  }
+
+  function artForChoice(title,eventFace){
+    var scene="cafe";
+    if(/复查|辅助|医生|身体|医疗|治疗/.test(title)) scene="clinic";
+    else if(/领养|交接|社工/.test(title)) scene="social";
+    else if(/朋友|支持|一起|大家|亲近/.test(title)) scene="park";
+    else if(/账户|预算|消费|资金|费用/.test(title)) scene="city";
+    else if(/工作|忙|承担|自己扛|独自|安静/.test(title)) scene="office";
+    else if(/边界|父母|家人|照顾|孩子|抱进|迎接/.test(title)) scene="home";
+    else if(/计划|分工|清单|协议|约定|风险|说明/.test(title)) scene="desk";
+    else if(/享受|观察|散步/.test(title)) scene="park";
+    else if(/约会|相处|同行|自然生育/.test(title)) scene="cafe";
+
+    var sprite=spriteForFace(eventFace);
+    if(/自然生育|同行/.test(title)) sprite=state.root.key==="solo"?"friend":state.root.key;
+    if(/复查|辅助|医生|身体|医疗|治疗/.test(title)) sprite="doctor";
+    else if(/领养|交接|社工/.test(title)) sprite="social";
+    else if(/朋友|支持网|支持|大家/.test(title)) sprite="friend";
+    else if(/父母|家人|边界|安抚/.test(title)) sprite="family";
+    if(/自己扛|独自|独立方案|独立启动|安静记住/.test(title)) sprite="solo";
+    if(/孩子|抱进|迎接/.test(title)) sprite=/大家|支持|亲近/.test(title)?"friend":"family";
+    var prop="heart";
+    if(/钥匙|进门/.test(title)) prop="key";
+    else if(/时间|日历|排班|陪诊|休假/.test(title)) prop="calendar";
+    else if(/房租|账户|资金|预算|消费|费用|缺口/.test(title)) prop="coin";
+    else if(/复查|辅助|医生|身体|医疗|治疗/.test(title)) prop="report";
+    else if(/边界|父母|家人|照顾/.test(title)) prop="home";
+    else if(/朋友|支持|大家|亲近/.test(title)) prop="network";
+    else if(/计划|分工|清单|协议|承诺|约定|说明|规则/.test(title)) prop="contract";
+    else if(/工作|晋升|事业|忙/.test(title)) prop="briefcase";
+    else if(/领养|交接|孩子|抱进|迎接/.test(title)) prop="baby";
+    else if(/自然生育|妊娠/.test(title)) prop="sprout";
+    var atlas=0;
+    if(/抱进|迎接|每个人接住|第一份礼物|孩子平安|孩子正式进入|孩子被大家/.test(title)) atlas=15;
+    else if(/共同养育|共养/.test(title)) atlas=14;
+    else if(/领养|交接|社工/.test(title)) atlas=13;
+    else if(/辅助生育|辅助/.test(title)) atlas=12;
+    else if(/自然生育|妊娠/.test(title)) atlas=11;
+    else if(/分手|结束这段关系|离开|不再启动孩子|没有孩子|自然走下去/.test(title)) atlas=5;
+    else if(/共同检查|陪你.*复查|重新排答辩|陪诊.*锁进/.test(title)) atlas=12;
+    else if(/司机|专属医生|独自.*复查|你独自|自己完成复查/.test(title)) atlas=4;
+    else if(/高级护理|只购买|只依赖付费|最高档服务|全部答案|替他补上|补上全部|由他出钱/.test(title)) atlas=3;
+    else if(state.root.key==="solo"&&/(?:孩子计划|愿望|重新打开)/.test(title)) atlas=10;
+    else if(/独立方案|独立启动|自己的生育计划|暂不选择|继续按独立/.test(title)) atlas=10;
+    else if(/心动|相爱|爱情|彼此|再喝一杯|两地生活|享受|观察|约会|同行|相处/.test(title)) atlas=1;
+    else if(/保持原来的生活|购物|消费|享受当下/.test(title)) atlas=9;
+    else if(/账户|预算|存钱|费用|房租|缺口|资金|财富|事业和钱|收入线/.test(title)) atlas=8;
+    else if(/朋友|支持网|支持|大家|亲近/.test(title)) atlas=7;
+    else if(/自己扛|独自|承担一点|补上全部/.test(title)) atlas=3;
+    else if(/钥匙|边界|父母|家人|安抚|进门|孩子.*(?:固定住处|住处|照护)/.test(title)) atlas=6;
+    else if(/工作|晋升|事业|忙/.test(title)) atlas=5;
+    else if(/复查|医生|身体|医疗|治疗/.test(title)) atlas=4;
+    else if(/计划|分工|清单|协议|承诺|约定|说明|规则|排班|日历|家庭方案|共同生活/.test(title)) atlas=2;
+    if(atlas===0 && eventFace==="友") atlas=7;
+    return {scene:scene,sprite:sprite,prop:prop,atlas:atlas};
+  }
+
+  function choicePicture(title,eventFace){
+    var art=artForChoice(title,eventFace);
+    return '<span class="v3-choice-art v3-atlas-'+art.atlas+'" role="img" aria-label="与这个选择对应的像素场景"></span>';
+  }
+
+  function eventStoryArt(event){
+    if(event.art) return event.art;
+    if(event.stage==="抵达期"){
+      if(/领养|交接/.test(event.title)) return {sheet:"collage",cell:10};
+      if(/共同养育/.test(state.path)) return {sheet:"collage",cell:10};
+      if(/辅助/.test(state.path)) return {sheet:"collage",cell:11};
+      return {sheet:"collage",cell:11};
+    }
+    if(event.stage==="路径选择期") return {sheet:"plan",cell:2};
+    if(/暂不选择任何人/.test(event.title)) return {sheet:"moments",cell:10};
+    if(/备用钥匙|父母|边界/.test(event.title)) return {sheet:"collage",cell:2};
+    if(/晋升|加班|工作/.test(event.title)) return {sheet:"nine",cell:4};
+    if(/房租|费用|预算|账户/.test(event.title)) return {sheet:"moments",cell:7};
+    if(/支持网|朋友/.test(event.title)) return {sheet:"nine",cell:6};
+    if(/体检|医生|复查/.test(event.title)) return {sheet:"plan",cell:3};
+    if(/同行者/.test(event.title)) return {sheet:"collage",cell:7};
+    if(/承诺|共同生活|同一张表|资源之外/.test(event.title)) return {sheet:"plan",cell:2};
+    if(/约会|未来放上桌/.test(event.title)) return {sheet:"nine",cell:0};
+    return {sheet:"moments",cell:0};
+  }
+
+  function renderEvent(){
+    var events=getEvents();
+    var event=events[Math.min(state.step,events.length-1)];
+    var sceneByStep=["date","life","clinic","family","life","path","arrival"];
+    document.getElementById("v3-game").setAttribute("data-scene",event.scene||sceneByStep[Math.min(state.step,sceneByStep.length-1)]);
+    document.getElementById("v3-stage-label").textContent=event.stage;
+    document.getElementById("v3-event-stage").textContent=event.stage+" · 事件 "+(state.history.length+1);
+    document.getElementById("v3-event-title").textContent=event.title;
+    renderTown(event);
+    var eventArt=eventStoryArt(event);
+    var illustration=document.getElementById("v3-event-illustration");
+    illustration.className="v3-event-illustration v3-story-"+eventArt.sheet+" v3-wide-"+eventArt.cell;
+    illustration.setAttribute("aria-label",event.title+"的像素场景");
+    document.getElementById("v3-event-copy").textContent=event.copy;
+    var echo=document.getElementById("v3-event-echo");
+    echo.textContent=event.echo||"";
+    echo.className="v3-event-echo"+(event.echo?" is-show":"");
+    var face=document.getElementById("v3-scene-face");
+    var spriteKey=spriteForFace(event.face);
+    face.textContent="";
+    face.className="v3-scene-face v3-sprite v3-sprite-"+spriteKey;
+    face.setAttribute("aria-label",event.face+"出场");
+    var html="";
+    for(var i=0;i<event.choices.length;i++){
+      var c=event.choices[i];
+      html+='<button class="v3-btn v3-choice '+(i%2?"v3-soft":"")+'" data-v3-choice="'+i+'" '+(c.locked?'disabled aria-disabled="true"':'')+'>'+
+        choicePicture(c.title,event.face)+
+        '<span class="v3-choice-copy"><strong>'+c.title+'</strong><small>'+(c.locked?c.lockReason:c.sub)+'</small></span></button>';
+    }
+    var box=document.getElementById("v3-choices");
+    box.className="v3-choice-grid"+(event.choices.length>2?" is-many":"");
+    box.innerHTML=html;
+  }
+
+  function showChoiceFeedback(event,c){
+    var actor=feedbackActor(event);
+    var overlay=document.getElementById("v5-feedback-overlay");
+    var face=document.getElementById("v5-feedback-face");
+    var thinking=document.getElementById("v5-feedback-thinking");
+    var result=document.getElementById("v5-feedback-result");
+    face.className="v5-feedback-face v3-sprite v3-sprite-"+actor.sprite;
+    face.setAttribute("aria-label",actor.name+"正在回应");
+    document.getElementById("v5-feedback-speaker").textContent=actor.name+"的回应";
+    document.getElementById("v5-feedback-title").textContent=c.title;
+    document.getElementById("v5-feedback-thinking-copy").textContent=actor.thinking;
+    document.getElementById("v5-feedback-response").textContent=responseForChoice(event,c);
+    document.getElementById("v5-feedback-deltas").innerHTML=feedbackDeltaHtml(c.delta);
+    document.getElementById("v5-feedback-memory").textContent=(state.root.key==="solo"?"人生记忆":"关系记忆")+" · "+c.note+"。这件事会影响后面的选择。";
+    thinking.style.display="flex";
+    result.className="v5-feedback-result";
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden","false");
+    document.body.classList.add("v5-feedback-open");
+    window.clearTimeout(feedbackTimer);
+    feedbackTimer=window.setTimeout(function(){
+      thinking.style.display="none";
+      result.className="v5-feedback-result is-ready";
+      var button=document.querySelector("[data-v5-feedback-continue]");
+      if(button) button.focus();
+    },620);
+  }
+
+  function closeChoiceFeedback(resetPending){
+    var overlay=document.getElementById("v5-feedback-overlay");
+    window.clearTimeout(feedbackTimer);
+    if(overlay){
+      overlay.classList.remove("is-open");
+      overlay.setAttribute("aria-hidden","true");
+    }
+    document.body.classList.remove("v5-feedback-open");
+    if(resetPending) pendingAdvance=null;
+  }
+
+  function finishChoiceAdvance(){
+    if(!pendingAdvance) return;
+    var pending=pendingAdvance;
+    pendingAdvance=null;
+    closeChoiceFeedback(false);
+    if(pending.danger){
+      state.failed=true;
+      showFailure(pending.danger);
+      return;
+    }
+    state.step+=1;
+    if(state.step===6 && state.metrics.progress<57){
+      state.failed=true;
+      showFailure("progress");
+      return;
+    }
+    var nextEvents=getEvents();
+    if(state.step>=nextEvents.length){
+      if(state.metrics.progress<82){
+        state.failed=true;
+        showFailure("progress");
+        return;
+      }
+      state.metrics.progress=100;
+      state.history[state.history.length-1].afterMetrics=cloneMetrics(state.metrics);
+      showWin();
+      return;
+    }
+    renderAll();
+  }
+
+  function choose(index){
+    if(!state||state.failed||busy) return;
+    var events=getEvents(), event=events[state.step], c=event&&event.choices[index];
+    if(!c) return;
+    if(c.locked){pop(c.lockReason||"当前条件尚未满足");return;}
+    closeSystemPanel();
+    busy=true;
+    var before=cloneMetrics(state.metrics);
+    var eventPlace=activePlace(event);
+    for(var k in c.delta) state.metrics[k]=clamp(state.metrics[k]+c.delta[k]);
+    if(c.run) c.run();
+    state.logs.push(c.note);
+    state.history.push({
+      step:state.step,stage:event.stage,eventTitle:event.title,choiceTitle:c.title,note:c.note,
+      delta:Object.assign({},c.delta),beforeMetrics:before,afterMetrics:cloneMetrics(state.metrics),
+      place:eventPlace,path:state.path,response:responseForChoice(event,c)
+    });
+    state.lastNote=c.note;
+    if(c.ending){
+      busy=false;
+      state.failed=true;
+      if(c.ending==="breakup") showRelationshipEnd();
+      else showRetirementEnding();
+      return;
+    }
+    renderMeters(c.delta);
+    var danger=["money","career","body","trust","intimacy","support","mind"].filter(function(key){return state.metrics[key]<=32;});
+    pendingAdvance={danger:danger[0]||null};
+    showChoiceFeedback(event,c);
+  }
+
+  function pop(text){
+    var el=document.getElementById("v3-toast");
+    el.textContent=text;
+    el.classList.add("is-show");
+    window.clearTimeout(toastTimer);
+    toastTimer=window.setTimeout(function(){el.classList.remove("is-show");},1500);
+  }
+
+  function showRelationshipEnd(){
+    var name=state.root.name;
+    var artByRoute={
+      chen:"v3-story-moments v3-wide-10",
+      shen:"v3-story-plan v3-wide-9",
+      zhou:"v3-story-collage v3-wide-6"
+    };
+    var breakupArt=artByRoute[state.root.key]||"v3-story-nine v3-wide-9";
+    var card=document.getElementById("v3-ending-card");
+    card.innerHTML='<div class="v3-ending-scene v3-event-illustration '+breakupArt+'" aria-label="分手后独自重新规划生活的像素场景"></div><div class="v3-kicker">RELATIONSHIP ENDED</div><h1>这段关系到这里</h1><div class="v3-ending-route">你和 '+escapeHtml(name)+' 分手了</div><p>结束一段不适合共同养育的关系，不等于结束想要孩子的人生。现在可以重新认识别人，也可以不再选择伴侣，带着已经看清的东西继续准备。</p><div class="v3-top-actions"><button class="v3-btn" data-v3-action="after-breakup-origins">重新认识别人</button><button class="v3-btn v3-soft" data-v3-action="after-breakup-solo">暂不选择伴侣，继续准备</button><button class="v3-btn v3-ghost" data-v3-action="home">回到首页</button></div>';
+    show("v3-ending");
+  }
+
+  function continueSoloAfterBreakup(){
+    var previous=state;
+    var next=createState("solo");
+    next.metrics=cloneMetrics(previous.metrics);
+    next.metrics.trust=Math.max(42,next.metrics.trust);
+    next.metrics.intimacy=Math.max(42,next.metrics.intimacy);
+    next.metrics.mind=clamp(next.metrics.mind+6);
+    next.elapsed=(previous.elapsed||0)+previous.step+1;
+    next.logs=previous.logs.concat(["结束与「"+previous.root.name+"」的关系，转入独立孩子计划"]);
+    next.history=previous.history.slice();
+    next.flags.afterBreakup=previous.root.name;
+    state=next;
+    busy=false;
+    show("v3-game");
+    renderAll();
+  }
+
+  function showRetirementEnding(){
+    var track=state.flags.soloTrack;
+    var copy;
+    if(track==="wealth"){
+      copy="你拥有了足够的财富，也走过完整、充实的一生。晚年住进养老社区时，你没有再启动孩子计划。";
+    }else if(track==="love"){
+      copy=state.flags.loveCommitted?"你和林然相伴走过许多年，后来一起住进养老社区。你们选择了彼此，但没有让孩子进入家庭。":"你曾经心动、相爱，也按自己的方式生活。晚年住进养老社区时，孩子仍没有进入这个家。";
+    }else{
+      copy="你一次次把决定留给以后，也拥有工作、朋友和自己的生活。晚年住进养老社区时，孩子没有进入这个家。";
+    }
+    var card=document.getElementById("v3-ending-card");
+    card.innerHTML='<div class="v3-ending-scene v3-event-illustration v3-retirement-scene" aria-label="紫花与养老社区的像素晚年场景"></div><div class="v3-kicker">END OF LIFE</div><h1>紫花开在养老院窗外</h1><div class="v3-ending-route">本局未通关 · 没有孩子进入家庭</div><p>'+copy+' 这不是对人生价值的评判，只是这局游戏的唯一目标没有完成。</p><div class="v3-summary"><div><b>'+Math.round(state.metrics.money)+'</b><span>最终资金</span></div><div><b>'+Math.round(state.metrics.mind)+'</b><span>最终心力</span></div><div><b>'+state.logs.length+'</b><span>人生决定</span></div></div><div class="v3-top-actions"><button class="v3-btn" data-v3-action="retry">重走这一生</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button></div>';
+    show("v3-ending");
+  }
+
+  function showFailure(metric){
+    var labels={money:"资金耗尽",career:"事业支点断裂",body:"身体亮起红灯",trust:"共识崩塌",intimacy:"亲密关系失联",support:"照护网断裂",mind:"心力透支",progress:"孩子路径尚未准备完成"};
+    var card=document.getElementById("v3-ending-card");
+    card.innerHTML='<div class="v3-baby-mark">暂停</div><div class="v3-kicker">ROUTE INTERRUPTED</div><h1>本局未通关</h1><div class="v3-ending-route">'+labels[metric]+'</div><p>这不是“不配拥有孩子”。它说明当前路线需要更多资源、更多协商，或者换一种抵达方式。</p><div class="v3-top-actions"><button class="v3-btn" data-v3-action="retry">从这条路重开</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button></div>';
+    show("v3-ending");
+  }
+
+  function showWin(){
+    var m=state.metrics;
+    var copy="你通过「"+state.path+"」走到了这里。伴侣可以参与，也可以不参与；血缘可以存在，也可以不存在。真正让家庭成立的，是持续的选择、承诺与照顾。";
+    var arrivalScene='<div class="v3-ending-scene v3-event-illustration v3-atlas-15" aria-label="孩子进入家庭的完整像素通关插画"></div>';
+    var card=document.getElementById("v3-ending-card");
+    card.innerHTML=arrivalScene+'<div class="v3-kicker">MISSION COMPLETE</div><h1>孩子来到这个家</h1><div class="v3-ending-route">通关路线 · '+state.path+'</div><p>'+copy+'</p><div class="v3-summary"><div><b>'+Math.round(m.support)+'</b><span>照护网</span></div><div><b>'+Math.round(m.body)+'</b><span>身体余力</span></div><div><b>'+state.logs.length+'</b><span>关键决定</span></div></div><div class="v3-top-actions"><button class="v3-btn" data-v3-action="origins">体验另一条路</button><button class="v3-btn v3-ghost" data-v3-action="home">回到首页</button></div>';
+    show("v3-ending");
+  }
+
+  function handleClick(e){
+    var feedbackContinue=e.target.closest("[data-v5-feedback-continue]");
+    if(feedbackContinue){finishChoiceAdvance();return;}
+    var close=e.target.closest("[data-v4-close]");
+    if(close||e.target.id==="v4-system-overlay"){closeSystemPanel();return;}
+    var focusEvent=e.target.closest("[data-v4-focus-event]");
+    if(focusEvent){
+      closeSystemPanel();
+      var eventCard=document.querySelector(".v3-event");
+      if(eventCard) eventCard.scrollIntoView({behavior:"smooth",block:"start"});
+      return;
+    }
+    var profileAdjust=e.target.closest("[data-v4-field]");
+    if(profileAdjust){adjustProfile(profileAdjust.getAttribute("data-v4-field"),Number(profileAdjust.getAttribute("data-v4-dir"))||1);return;}
+    var hubPanel=e.target.closest("[data-v6-panel]");
+    if(hubPanel){openSystemPanel(hubPanel.getAttribute("data-v6-panel"));return;}
+    var metric=e.target.closest("[data-v4-metric]");
+    if(metric){openSystemPanel("metric",metric.getAttribute("data-v4-metric"));return;}
+    var item=e.target.closest("[data-v4-item]");
+    if(item){openSystemPanel("inventory",item.getAttribute("data-v4-item"));return;}
+    var place=e.target.closest("[data-v4-place]");
+    if(place){openSystemPanel("place",place.getAttribute("data-v4-place"));return;}
+    var origin=e.target.closest("[data-v3-origin]");
+    if(origin){pendingOriginKey=null;startFrom(origin.getAttribute("data-v3-origin"));return;}
+    var choiceEl=e.target.closest("[data-v3-choice]");
+    if(choiceEl){choose(Number(choiceEl.getAttribute("data-v3-choice")));return;}
+    var action=e.target.closest("[data-v3-action]");
+    if(!action) return;
+    var name=action.getAttribute("data-v3-action");
+    if(name==="new"||name==="origins"){pendingOriginKey=null;show("v3-origin");}
+    else if(name==="rules") show("v3-rules");
+    else if(name==="home") show("v3-home");
+    else if(name==="retry"&&state) startFrom(state.root.key);
+    else if(name==="after-breakup-origins"){pendingOriginKey=null;show("v3-origin");}
+    else if(name==="after-breakup-solo"&&state) continueSoloAfterBreakup();
+    else if(name==="confirm-origin"&&pendingOriginKey) startFrom(pendingOriginKey);
+    else if(name==="system-hub"&&state) openSystemPanel("hub");
+    else if(name==="profile"&&state) openSystemPanel("profile");
+    else if(name==="inventory"&&state) openSystemPanel("inventory");
+    else if(name==="relation"&&state) openSystemPanel("relation");
+    else if(name==="life-log"&&state) openSystemPanel("history");
+    else if(name==="route-status"&&state) openSystemPanel("route");
+  }
+
+  document.body.innerHTML=markup();
+  document.addEventListener("click",handleClick,true);
+  document.addEventListener("keydown",function(e){
+    e.stopImmediatePropagation();
+    var feedback=document.getElementById("v5-feedback-overlay");
+    if(feedback&&feedback.classList.contains("is-open")){
+      if(e.key==="Enter"&&document.getElementById("v5-feedback-result").classList.contains("is-ready")) finishChoiceAdvance();
+      return;
+    }
+    if(e.key==="Escape"){
+      var overlay=document.getElementById("v4-system-overlay");
+      if(overlay&&overlay.classList.contains("is-open")) closeSystemPanel();
+      else show("v3-home");
+    }
+  },true);
+})();
+</script>
+</body>
+</html>
