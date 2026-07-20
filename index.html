@@ -3722,7 +3722,7 @@
     return "春天住进了这个家";
   }
 
-  function endingHook(type,detail,year){
+  function endingHook(type,detail,year,decisions){
     if(type==="breakup") return "离开也是一种答案。换成你，会留下还是转身？";
     if(type==="retirement") return "这一生没有孩子进入家庭，也是一种答案。你会怎么选？";
     if(type==="failure"){
@@ -3738,7 +3738,10 @@
       };
       return failureHooks[detail]||("我第 "+year+" 年停在了这里，你能走多远？");
     }
-    return "不结婚，能生娃吗？这个游戏说可以。";
+    if(state.root.key==="solo"||/领养/.test(state.path)){
+      return "不结婚，能生娃吗？这个游戏说可以。";
+    }
+    return "生娃之前，我们先谈了 "+decisions+" 次。";
   }
 
   function isTouchShareContext(){
@@ -3750,8 +3753,8 @@
     var title=endingTitle(type,detail);
     var origin=state.root.key==="solo"?"独自开始":"与 "+state.root.name+" 开始";
     var failureStatus={
-      money:"资金耗尽",career:"事业失去支点",body:"身体亮起红灯",trust:"信任跌破底线",
-      intimacy:"亲密关系破裂",support:"照护支持断开",mind:"心力见底",progress:"生育准备停滞"
+      money:"资金跌破底线",career:"事业跌破底线",body:"身体跌破底线",trust:"共识跌破底线",
+      intimacy:"亲密跌破底线",support:"照护网跌破底线",mind:"心力跌破底线",progress:"生育进度停滞"
     };
     var status;
     if(type==="win") status="通关路线 · "+state.path;
@@ -3760,7 +3763,7 @@
     else status="路线中断 · "+(failureStatus[detail]||detail);
     var decisions=state.history.length;
     var year=Math.max(1,Math.floor(((state.elapsed||0)+state.step)/4)+1);
-    var hook=endingHook(type,detail,year);
+    var hook=endingHook(type,detail,year,decisions);
     var kicker=state.root.key==="solo"?"我的人生结局":"我与"+state.root.name+"的结局";
     var shareHint=isTouchShareContext()?"长按截图，或点击分享这段人生":"截取这张卡片，或点击分享这段人生";
     sharePayload={title:title,status:status,memories:memories,closing:closing,hook:hook};
