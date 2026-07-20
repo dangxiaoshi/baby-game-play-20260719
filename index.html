@@ -3722,6 +3722,29 @@
     return "春天住进了这个家";
   }
 
+  function endingHook(type,detail,year){
+    if(type==="breakup") return "离开也是一种答案。换成你，会留下还是转身？";
+    if(type==="retirement") return "这一生没有孩子进入家庭，也是一种答案。你会怎么选？";
+    if(type==="failure"){
+      var failureHooks={
+        money:"我第 "+year+" 年就把存款花光了，你能走多远？",
+        career:"我第 "+year+" 年就把事业支点丢了，你能走多远？",
+        body:"我第 "+year+" 年就被身体按下暂停，你能走多远？",
+        trust:"我第 "+year+" 年就把共识磨没了，你能走多远？",
+        intimacy:"我第 "+year+" 年就把两个人走成两条路，你能走多远？",
+        support:"我第 "+year+" 年就让照护网断了，你能走多远？",
+        mind:"我第 "+year+" 年就把心力耗光了，你能走多远？",
+        progress:"我第 "+year+" 年还没准备好这个家，你能走多远？"
+      };
+      return failureHooks[detail]||("我第 "+year+" 年停在了这里，你能走多远？");
+    }
+    return "不结婚，能生娃吗？这个游戏说可以。";
+  }
+
+  function isTouchShareContext(){
+    return !!(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches);
+  }
+
   function shareEndingCard(type,detail,closing,actions){
     var memories=endingMemories();
     var title=endingTitle(type,detail);
@@ -3737,7 +3760,10 @@
     else status="路线中断 · "+(failureStatus[detail]||detail);
     var decisions=state.history.length;
     var year=Math.max(1,Math.floor(((state.elapsed||0)+state.step)/4)+1);
-    sharePayload={title:title,status:status,memories:memories,closing:closing};
+    var hook=endingHook(type,detail,year);
+    var kicker=state.root.key==="solo"?"我的人生结局":"我与"+state.root.name+"的结局";
+    var shareHint=isTouchShareContext()?"长按截图，或点击分享这段人生":"截取这张卡片，或点击分享这段人生";
+    sharePayload={title:title,status:status,memories:memories,closing:closing,hook:hook};
     var memoryHtml="";
     for(var i=0;i<memories.length;i++){
       memoryHtml+='<div class="v8-share-memory"><b>0'+(i+1)+'</b><span>'+escapeHtml(memories[i])+'</span></div>';
@@ -3749,7 +3775,7 @@
         '<div class="v8-share-brand"><b>《我想生个娃》</b><span>MY LIFE STORY</span></div>'+
         '<div class="v8-share-hero">'+
           '<div class="v8-share-avatar v3-sprite v3-sprite-'+state.root.key+'" role="img" aria-label="'+escapeHtml(state.root.name)+'像素人物"></div>'+
-          '<div><div class="v8-share-kicker">我的人生结局</div><h1 class="v8-share-title">'+escapeHtml(title)+'</h1><div class="v8-share-route">'+escapeHtml(status)+'</div></div>'+
+          '<div><div class="v8-share-kicker">'+escapeHtml(kicker)+'</div><h1 class="v8-share-title">'+escapeHtml(title)+'</h1><div class="v8-share-route">'+escapeHtml(status)+'</div></div>'+
         '</div>'+
         '<div class="v8-share-memories"><h3>这一生，我记住了</h3>'+memoryHtml+'</div>'+
         '<p class="v8-share-closing">'+escapeHtml(closing)+'</p>'+
@@ -3758,17 +3784,21 @@
           '<div class="v8-share-stat"><b>第 '+year+' 年</b><span>走到这里</span></div>'+
           '<div class="v8-share-stat"><b>'+decisions+' 次</b><span>关键决定</span></div>'+
         '</div>'+
-        '<footer class="v8-share-footer"><b>不结婚，能生娃吗？这个游戏说可以。</b><span>截图这张人生小传，看看朋友会替你怎么选。</span><small>dangxiaoshi.github.io/baby-game-play-20260719/</small></footer>'+
+        '<footer class="v8-share-footer"><b>'+escapeHtml(hook)+'</b><span>截图这张人生小传，看看朋友会替你怎么选。</span><small>dangxiaoshi.github.io/baby-game-play-20260719/</small></footer>'+
       '</section>'+
-      '<div class="v8-share-hint">长按截图，或点击分享这段人生</div>'+
+      '<div class="v8-share-hint">'+escapeHtml(shareHint)+'</div>'+
       '<div class="v3-top-actions v8-share-actions"><button class="v3-btn" data-v8-share>分享这段人生</button>'+actions+'</div>';
   }
 
   function copyShareText(text){
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){pop("人生小传已复制");}).catch(function(){pop("请长按截图分享");});
+      navigator.clipboard.writeText(text).then(function(){
+        pop(isTouchShareContext()?"文案已复制，长按截图分享":"已复制文案，配截图发出去");
+      }).catch(function(){
+        pop(isTouchShareContext()?"请长按截图分享":"请截图保存，再配上结局文案");
+      });
     }else{
-      pop("请长按截图分享");
+      pop(isTouchShareContext()?"请长按截图分享":"请截图保存，再配上结局文案");
     }
   }
 
@@ -3777,7 +3807,7 @@
     var url="https://dangxiaoshi.github.io/baby-game-play-20260719/";
     var text=sharePayload.title+"\n"+sharePayload.status+"\n"+
       sharePayload.memories.map(function(item,index){return (index+1)+". "+item;}).join("\n")+
-      "\n"+sharePayload.closing;
+      "\n"+sharePayload.closing+"\n"+sharePayload.hook;
     if(navigator.share){
       navigator.share({title:"《我想生个娃》｜"+sharePayload.title,text:text,url:url}).catch(function(error){
         if(!error||error.name!=="AbortError") copyShareText(text+"\n"+url);
