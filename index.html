@@ -266,7 +266,7 @@
       <div class="meter xinli" data-k="xinli"><span class="arrow">▲</span><span class="ic">✦</span><span class="nm">心力</span><div class="bar"><div class="fill"></div></div></div>
       <div class="meter qinmi" data-k="qinmi"><span class="arrow">▲</span><span class="ic">♥</span><span class="nm">亲密</span><div class="bar"><div class="fill"></div></div></div>
       <div class="meter jingji" data-k="jingji"><span class="arrow">▲</span><span class="ic">¥</span><span class="nm">经济</span><div class="bar"><div class="fill"></div></div></div>
-      <div class="meter zhichi" data-k="zhichi"><span class="arrow">▲</span><span class="ic">✿</span><span class="nm">支持网</span><div class="bar"><div class="fill"></div></div></div>
+      <div class="meter zhichi" data-k="zhichi"><span class="arrow">▲</span><span class="ic">✿</span><span class="nm">帮手</span><div class="bar"><div class="fill"></div></div></div>
     </div>
     <div id="table"><div id="deck"></div></div>
     <div id="choices">
@@ -336,7 +336,7 @@
 (function(){
   /* ============ 可见四表 ============ */
   var METERS=["xinli","qinmi","jingji","zhichi"];
-  var meterName={xinli:"心力",qinmi:"亲密",jingji:"经济",zhichi:"支持网"};
+  var meterName={xinli:"心力",qinmi:"亲密",jingji:"经济",zhichi:"帮手"};
   function E(m,h){ return {m:m||{}, h:h||{}}; }
 
   /* ============ 三种伴侣原型（对应四入口的前三个） ============ */
@@ -435,7 +435,7 @@
   var CARD3={ p:"life", tag:"core", who:"两家人坐下来", hue:30,
     text:"要不要把关系定下来。双方父母开始插手房子、彩礼、以后住哪，饭桌上的空气紧了。",
     L:{label:"先不办，按我们自己的来", eff:E({xinli:4,zhichi:-8},{conflictRepair:2,lifeMargin:8}), kid:-4,
-       narr:"你守住了两个人的边界和节奏。代价是老人那份现成的托底没接住，往后紧要关头得自己扛。"},
+       narr:"你守住了两个人的边界和节奏。代价是没接住老人原本能搭的那把手，往后紧要关头得自己扛。"},
     R:{label:"顺着长辈，把事办了", eff:E({zhichi:10,jingji:2,xinli:-8},{careDivision:2,lifeMargin:-8}), kid:6,
        narr:"你换来了两家人的搭手和底气。可这个家从此有别人的钥匙、别人的意见，你的地盘小了一圈。"} };
 
@@ -2397,9 +2397,9 @@
       start:{money:58,career:58,trust:68,intimacy:58,body:64,mind:62,support:54,progress:8}
     },
     shen:{
-      key:"shen",name:"沈明",tag:"没有原生家庭托底的行动派",portrait:"#788fa6",
-      intro:"沈明的父母早逝，他很早就学会靠钱和计划解决问题。他能准备资源，却没有一个随时可以接手的家庭支援。",
-      quote:"我习惯自己扛，但如果要成为家，我们得重新学会向别人开口。",
+      key:"shen",name:"沈明",tag:"父母帮不上忙的行动派",portrait:"#788fa6",
+      intro:"沈明的父母早逝，他很早就学会靠钱和计划解决问题。他能准备钱和服务，却没有随时能来搭把手的家人。",
+      quote:"我习惯自己扛，但如果要成为一家人，我们得学会开口请人帮忙。",
       start:{money:76,career:82,trust:46,intimacy:42,body:61,mind:57,support:48,progress:8}
     },
     zhou:{
@@ -2418,7 +2418,7 @@
 
   var metricMeta = [
     ["money","资金","#e2a43f"],["career","事业","#537fa5"],["body","身体","#69a96b"],["trust","共识","#d97868"],
-    ["intimacy","亲密","#dc7f9a"],["support","照护网","#5e98ad"],["mind","心力","#a07bb0"],["progress","生育进度","#d8678a"]
+    ["intimacy","亲密","#dc7f9a"],["support","帮手","#5e98ad"],["mind","心力","#a07bb0"],["progress","生育进度","#d8678a"]
   ];
 
   var state = null;
@@ -2433,7 +2433,7 @@
     career:["设计师","自由职业者","项目经理","教师"],
     interest:["绘画 / 写作","旅行 / 摄影","烹饪 / 园艺","阅读 / 音乐"],
     wish:["明确想要孩子","正在认真考虑","想先做好准备"],
-    goal:["孩子进入家庭","建立稳定支持网","兼顾事业与家庭"]
+    goal:["孩子进入家庭","找好能搭把手的人","兼顾事业与家庭"]
   };
 
   function markup(){
@@ -2446,7 +2446,7 @@
             '<h1 class="v3-title">我想生个娃</h1>',
             '<div class="v3-home-lineup" aria-label="四位主角同屏"><div class="v3-home-person v3-sprite v3-sprite-solo"></div><div class="v3-home-person v3-sprite v3-sprite-chen"></div><div class="v3-home-person v3-sprite v3-sprite-shen"></div><div class="v3-home-person v3-sprite v3-sprite-zhou"></div></div>',
             '<p class="v3-home-line">你的选择，会长成怎样的家庭？</p>',
-            '<p class="v3-home-sub">从第一次约会出发，经营资金、身体、关系和支持网。伴侣不是必选项，孩子进入家庭才是这一局的目标。</p>',
+            '<p class="v3-home-sub">从第一次约会出发，经营资金、身体和关系，也要看清谁能来搭把手。伴侣不是必选项，孩子进入家庭才是这一局的目标。</p>',
             '<div class="v3-home-actions">',
               '<button class="v3-btn" data-v3-action="new">开始新人生</button>',
               '<button class="v3-btn v3-ghost" data-v3-action="rules">玩法说明</button>',
@@ -2528,7 +2528,7 @@
         '</section>',
         '<section id="v3-ending" class="v3-screen"><div id="v3-ending-card" class="v3-ending-card v3-pixel-panel"></div></section>',
         '<section id="v3-rules" class="v3-screen">',
-          '<div class="v3-rules-card v3-pixel-panel"><h2>这一局的通关规则</h2><ol><li>先从约会对象或“暂不选择伴侣”开始。</li><li>每次事件会改变资金、事业、身体、共识、亲密、照护网、心力和生育进度。</li><li>除进度外，任一资源降到 32 或以下会中断；进入孩子到来期前，进度至少需要 57。</li><li>中途决定自然生育、辅助生育、领养、单亲或共同养育等路径。</li><li>孩子进入家庭时立即通关。本 Demo 不模拟带娃阶段。</li></ol><button class="v3-btn" data-v3-action="home">回到首页</button></div>',
+          '<div class="v3-rules-card v3-pixel-panel"><h2>这一局的通关规则</h2><ol><li>先从约会对象或“暂不选择伴侣”开始。</li><li>每次事件会改变资金、事业、身体、共识、亲密、帮手、心力和生育进度。</li><li>除进度外，任一资源降到 32 或以下会中断；进入孩子到来期前，进度至少需要 57。</li><li>中途决定自然生育、辅助生育、领养、单亲或共同养育等路径。</li><li>孩子进入家庭时立即通关。本 Demo 不模拟带娃阶段。</li></ol><button class="v3-btn" data-v3-action="home">回到首页</button></div>',
         '</section>',
         '<div id="v3-toast" class="v3-toast"></div>',
       '</main>'
@@ -2571,7 +2571,7 @@
   }
 
   function deltaText(delta){
-    var labels={money:"资金",career:"事业",trust:"共识",intimacy:"亲密",body:"身体",mind:"心力",support:"照护网",progress:"进度"};
+    var labels={money:"资金",career:"事业",trust:"共识",intimacy:"亲密",body:"身体",mind:"心力",support:"帮手",progress:"进度"};
     var bits=[];
     for(var k in delta){
       if(k==="progress") continue;
@@ -2586,7 +2586,7 @@
     if(event.face==="林") return {name:"林然",sprite:"friend",thinking:"林然正在认真回应你"};
     if(event.face==="医") return {name:"医生",sprite:"doctor",thinking:"医生正在整理这次选择的影响"};
     if(event.face==="友") return {name:"朋友",sprite:"friend",thinking:"朋友正在认真回应你"};
-    if(event.face==="新") return {name:"新的同行者",sprite:"friend",thinking:"新的同行者正在回应你"};
+    if(event.face==="新") return {name:"新认识的人",sprite:"friend",thinking:"对方正在回应你"};
     if(event.face==="账") return {name:"你的计划",sprite:"solo",thinking:"你的计划正在重新计算"};
     if(event.face==="家"&&state.root.key==="solo") return {name:"你的家庭计划",sprite:"family",thinking:"你的家庭计划正在更新"};
     if(state.root.key!=="solo") return {name:state.root.name,sprite:state.root.key,thinking:state.root.name+"正在想"};
@@ -2620,7 +2620,7 @@
     }
     if(state.root.key==="solo"){
       return strained
-        ?"你把「"+c.note+"」记进计划。没有人替你做决定，也意味着下一步需要找到更多真实支点。"
+        ?"你把「"+c.note+"」记进计划。没有人替你做决定，也意味着下一步得找到真正能来搭把手的人。"
         :"你把「"+c.note+"」写进计划表。愿望第一次变成了一项可以继续执行的安排。";
     }
     if(state.root.key==="chen"){
@@ -2639,7 +2639,7 @@
   }
 
   function feedbackDeltaHtml(delta){
-    var labels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"照护网",mind:"心力",progress:"生育进度"};
+    var labels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"帮手",mind:"心力",progress:"生育进度"};
     var order=["money","career","body","trust","intimacy","support","mind","progress"];
     var html="";
     for(var i=0;i<order.length;i++){
@@ -2709,7 +2709,7 @@
         stage:"相处期",title:"紧急联系人那一栏空着",face:"沈",place:"hospital",scene:"clinic",art:{sheet:"collage",cell:8},
         copy:"体检表要求填写两位紧急联系人。沈明的父母早逝，他习惯只填自己；你的家人也不一定能随时出现。钱可以购买服务，却不能自动变成一个会在凌晨接电话的人。",
         choices:[
-          choice("一起建立朋友与专业照护名单","承认没有父母托底，再主动造一张网",{support:13,trust:9,mind:5,money:-4,progress:9},"你们第一次建立属于自己的支援网络",function(){state.flags.partnerLesson="主动造网";state.flags.familyBoundary=true;}, {response:"沈明把“紧急联系人”单独建成一张表，第一次没有只填服务商：“我们去问愿意半夜接电话的人，也把能回报的事写清楚。”"}),
+          choice("一起列出朋友和专业帮手","父母帮不上忙，就自己攒帮手",{support:13,trust:9,mind:5,money:-4,progress:9},"你们第一次列出了真能来的帮手",function(){state.flags.partnerLesson="自己攒帮手";state.flags.familyBoundary=true;}, {response:"沈明把“紧急联系人”单独建成一张表，第一次没有只填服务商：“我们去问愿意半夜接电话的人，也把能回报的事写清楚。”"}),
           choice("把高级护理套餐当作全部答案","资源更稳，人仍然缺席",{money:-6,support:5,trust:-5,intimacy:-4,mind:-5,progress:5},"服务被买下，紧急联系人仍然很少",function(){state.flags.partnerLesson="只有服务";state.flags.familyBoundary=false;}, {response:"沈明当场升级了护理套餐：“专业的人更可靠。”付款成功的提示亮了，表格里的第二位紧急联系人仍然空着。"})
         ]
       };
@@ -2719,7 +2719,7 @@
       copy:"周屿的一笔项目款又延迟了。他没有逃避，但这个月的房租和共同生活支出出现真实缺口。他说自己从小搬家，住在哪里都一样。",
       choices:[
         choice("建立共同账户和最低收入线","保留自由，也给生活加上地基",{money:7,career:4,trust:8,intimacy:3,mind:5,progress:9},"周屿把浪漫之外的数字也放上桌",function(){state.flags.partnerLesson="共同落地";}, {response:"周屿把两个账户分别命名为“自由”和“共同生活”：“我不想被钱困住，也不该让你替我兜底。”"}),
-        choice("这次先替他补上全部缺口","保护眼前亲密，也放大长期波动",{money:-13,trust:-4,intimacy:6,mind:-6,progress:5},"你守住了这个月，风险仍留给下个月",function(){state.flags.partnerLesson="你在托底";}, {response:"周屿说下个项目到账就补给你。这个月被你的存款托住了，下个月仍要靠一句“应该会有”。"})
+        choice("这次先替他补上全部缺口","保护眼前亲密，也放大长期波动",{money:-13,trust:-4,intimacy:6,mind:-6,progress:5},"你守住了这个月，风险仍留给下个月",function(){state.flags.partnerLesson="你在替他填坑";}, {response:"周屿说下个项目到账就补给你。这个月被你的存款托住了，下个月仍要靠一句“应该会有”。"})
       ]
     };
   }
@@ -2771,8 +2771,8 @@
         stage:"照护协商期",title:"照护预算里只有钱，没有人",face:"友",place:"service",scene:"path",art:{sheet:"collage",cell:6},
         copy:"沈明列出月嫂、托育和家政的完整预算，却不愿意请朋友帮忙。他说欠人情最麻烦；你看见的是所有突发情况仍然只有你们两个人。",
         choices:[
-          choice("邀请三位朋友加入紧急照护协议","让专业服务之外也有人能真正出现",{support:14,trust:8,mind:5,progress:9},"没有父母托底，你们主动组成了自己的家人",function(){state.flags.familyBoundary=true;state.flags.supportBuilt=true;}, {response:"朋友看完你们列出的紧急照护协议，回了一句：“把能帮的时间写清楚吧，我们不只是名单上的名字。”沈明第一次把人写进预算之外。"}),
-          choice("只购买最高档服务","计划精确，但没有非商业关系的支点",{money:-10,support:6,trust:-4,mind:-4,progress:5},"照护被定价，孤立风险仍然存在",function(){state.flags.familyBoundary=false;state.flags.supportBuilt=false;}, {response:"朋友看着那张只剩服务商的名单，没有再追问。最高档套餐填满了时段，突发时能推门进来的熟人仍然没有。"})
+          choice("和三位朋友约好紧急时谁能来","花钱买服务之外，也要有人真能出现",{support:14,trust:8,mind:5,progress:9},"父母帮不上忙，你们找到了愿意半夜来的人",function(){state.flags.familyBoundary=true;state.flags.supportBuilt=true;}, {response:"朋友看完你们列出的紧急帮忙约定，回了一句：“把能帮的时间写清楚吧，我们不只是名单上的名字。”沈明第一次把人写进预算之外。"}),
+          choice("只购买最高档服务","计划很满，但真出事时还是没人能来",{money:-10,support:6,trust:-4,mind:-4,progress:5},"服务买好了，半夜能来的人仍然没有",function(){state.flags.familyBoundary=false;state.flags.supportBuilt=false;}, {response:"朋友看着那张只剩服务商的名单，没有再追问。最高档套餐填满了时段，突发时能推门进来的熟人仍然没有。"})
         ]
       };
     }
@@ -2794,29 +2794,29 @@
         stage:"承诺期",title:"婚礼日期定了，夜间照护还没定",face:"陈",place:"parents",scene:"family",art:{sheet:"moments",cell:2},
         copy:firstEcho+" 陈牧愿意结婚，也愿意共同养育；但他仍把“我妈会帮忙”当成自己那一半责任。此前的相处结果是「"+lesson+"」。",
         choices:[
-          choice("把父母边界和夜班责任写进婚前协议","稳定不是有人替他做，而是他自己承担",{trust:12,intimacy:6,support:8,money:3,progress:12},"陈牧线形成稳定共担结构",null,{response:"陈牧逐条写下访客边界和夜班轮值，最后签上名字：“这次不是让我妈替我完成，是我自己承担。”"}),
-          choice("先结婚，具体分工以后再磨合","关系继续，传统分工风险仍在",{trust:-5,intimacy:5,support:6,mind:-7,progress:7},"婚礼向前，责任仍然模糊",null,{response:"陈牧握住你的手：“先把婚礼办了，日子总能慢慢磨出来。”日期确定了，责任仍没有负责人。"}),
+          choice("把父母边界和夜班责任写进婚前协议","稳定不是有人替他做，而是他自己承担",{trust:12,intimacy:6,support:8,money:3,progress:12},"陈牧把边界和夜班都签了字",function(){state.flags.marriageMode="married";},{response:"陈牧逐条写下访客边界和夜班轮值，最后签上名字：“这次不是让我妈替我完成，是我自己承担。”"}),
+          choice("先结婚，具体分工以后再磨合","关系继续，传统分工风险仍在",{trust:-5,intimacy:5,support:6,mind:-7,progress:7},"婚礼向前，责任仍然模糊",function(){state.flags.marriageMode="married";},{response:"陈牧握住你的手：“先把婚礼办了，日子总能慢慢磨出来。”日期确定了，责任仍没有负责人。"}),
           choice("这不是我要的共同生活，分手","结束这段关系，不再把时间押在改变他上",{trust:-12,intimacy:-15,mind:8,progress:0},"你结束了与陈牧的关系",null,{ending:"breakup"})
         ]
       };
     }
     if(state.root.key==="shen"){
       return {
-        stage:"承诺期",title:"他愿意付全部费用，却不愿请一天假",face:"沈",place:"company",scene:"life",art:{sheet:"plan",cell:4},
-        copy:firstEcho+" 沈明的财务方案无可挑剔，但陪诊、休假和夜间照顾仍要从事业日程里真正让出位置。此前的相处结果是「"+lesson+"」。",
+        stage:"承诺期",title:"他说流程都能安排，你问：我们要不要领证",face:"沈",place:"company",scene:"life",art:{sheet:"plan",cell:4},
+        copy:firstEcho+" 沈明已经列好生育费用和时间表，却一直没回答婚姻。你把问题放到桌上：可以结婚，也可以不领证，但责任必须说清楚。此前的相处结果是「"+lesson+"」。",
         choices:[
-          choice("把陪诊、休假和夜班锁进工作日历","他交出的不只是钱，还有不可替代的时间",{career:-7,trust:13,intimacy:7,support:6,progress:12},"沈明把家庭时间设成不可被覆盖的日程",null,{response:"沈明把陪诊、休假和夜班标成不可覆盖的红色日程：“这些时间不能授权给别人，也不能被工作挪走。”"}),
-          choice("由他出钱，你负责日常执行","资金更稳，隐形劳动向你集中",{money:10,career:5,trust:-9,intimacy:-6,mind:-9,progress:7},"资源增加，共同承担仍未成立",null,{response:"沈明把共同账户的额度调高：“日常需要什么就直接买。”钱进入了家庭，琐碎、夜晚和临时变化仍全部落在你身上。"}),
-          choice("我要的是同行者，不是赞助人，分手","结束资源充足却持续缺席的关系",{trust:-13,intimacy:-12,mind:9,progress:0},"你结束了与沈明的关系",null,{ending:"breakup"})
+          choice("领证，把陪诊、休假和夜班写清楚","结婚不是默认分工，责任要落到两个人身上",{career:-7,trust:13,intimacy:7,support:6,progress:12},"你们决定领证，也把不能外包的时间写进日历",function(){state.flags.marriageMode="married";},{response:"沈明把陪诊、休假和夜班标成不可覆盖的红色日程：“我们领证，但这些责任不能授权给别人，也不能被工作挪走。”"}),
+          choice("不领证，签下共同养育协议","不靠那张证，也要把钱、时间和决定权写清",{money:-3,trust:11,intimacy:5,support:8,mind:4,progress:12},"你们选择不领证，把共同养育责任逐条签下",function(){state.flags.marriageMode="unmarried";},{response:"沈明没有反驳。他新建一份共同养育协议：“不领证可以，但钱、陪诊、夜班和紧急决定都要写清，也要由我本人出现。”"}),
+          choice("我要的是一起过日子的人，不是只会出钱的人，分手","结束有钱却总是缺席的关系",{trust:-13,intimacy:-12,mind:9,progress:0},"你结束了与沈明的关系",null,{ending:"breakup"})
         ]
       };
     }
     return {
-      stage:"承诺期",title:"他想要孩子，却仍不肯确定住处",face:"周",place:"cafe",scene:"date",art:{sheet:"moments",cell:11},
-      copy:firstEcho+" 周屿说爱你，也说自己可能随时去另一座城市生活。此前的相处结果是「"+lesson+"」。孩子需要的不是保证永远浪漫，而是明天仍有人出现。",
+      stage:"承诺期",title:"他说爱不需要证书，你问：孩子需要什么承诺",face:"周",place:"cafe",scene:"date",art:{sheet:"moments",cell:11},
+      copy:firstEcho+" 周屿害怕婚姻会困住自由，却又说想和你要一个孩子。你把话说开：可以领证，也可以不领证，但孩子不能只靠临时商量。此前的相处结果是「"+lesson+"」。",
       choices:[
-        choice("确定三年住处和照护排班","自由保留，责任不再靠临场发挥",{money:6,career:3,trust:11,intimacy:5,support:6,progress:12},"周屿第一次给共同生活一个期限和地址",null,{response:"周屿把三年住处和轮班表贴在墙上：“留下不是失去自由，是我主动选择和你们在这里。”"}),
-        choice("接受两地生活，靠临时协调","亲密不减，照护风险继续漂浮",{trust:-7,intimacy:6,money:-6,support:-5,mind:-7,progress:6},"浪漫仍在，稳定地址仍然缺席",null,{response:"周屿订好下一趟车票：“距离不会改变我们。”共同生活继续，固定的照护地址仍然没有出现。"}),
+        choice("领证，并确定三年住处和轮班","婚姻不等于失去自由，但孩子要有固定生活",{money:3,career:2,trust:12,intimacy:6,support:7,progress:12},"你们决定领证，也给共同生活一个地址",function(){state.flags.marriageMode="married";},{response:"周屿沉默很久，最后把三年住处和轮班表贴在墙上：“领证不是被困住，是我选择留在你们身边。”"}),
+        choice("不领证，签下共同养育协议","保留各自生活，也把住处、钱和轮班写清楚",{money:2,trust:11,intimacy:5,support:8,mind:4,progress:12},"你们选择不领证，把共同养育责任逐条签下",function(){state.flags.marriageMode="unmarried";},{response:"周屿在协议最后签下名字：“我们可以不领证，但孩子住哪里、谁值夜班、我去外地多久，都不能只靠一句到时候再说。”"}),
         choice("我不能等你有一天愿意留下，分手","承认爱是真的，也承认它不足以共同养育",{trust:-10,intimacy:-16,mind:10,progress:0},"你结束了与周屿的关系",null,{ending:"breakup"})
       ]
     };
@@ -2851,7 +2851,7 @@
         copy:"林然是纪录片剪辑师。她没有把你的孩子计划当成一场面试，只问：“如果以后有我，你希望我是爱人，还是也成为这个家的共同决定者？”",
         choices:[
           choice("约她再喝一杯，认真认识彼此","让心动进入真实关系，而不是替孩子找角色",{intimacy:13,trust:8,mind:6,progress:8},"你和林然开始约会",function(){state.flags.loveOpen=true;}, {response:"林然笑了：“先认识你，再谈我们能不能成为家。孩子不该是任何人被录取的理由。”"}),
-          choice("告诉她，现在只想做朋友","保留支持，也保留独立路线",{support:8,mind:5,intimacy:-2,progress:5},"林然成为可信任的朋友",function(){state.flags.loveOpen=false;})
+          choice("告诉她，现在只想做朋友","保留这个朋友，也保留独立路线",{support:8,mind:5,intimacy:-2,progress:5},"林然成为可信任的朋友",function(){state.flags.loveOpen=false;})
         ]
       };
     }
@@ -2859,7 +2859,7 @@
       stage:"时间流动期",title:"三十五岁生日，朋友又问起那个愿望",face:"友",place:"cafe",scene:"life",art:{sheet:"moments",cell:10},
       copy:"这些年过得并不坏。工作稳定、朋友仍在，只是“以后再说”已经从一句缓冲变成一种生活方式。",
       choices:[
-        choice("现在重新打开孩子计划","承认时间变化，从信息和支持重新开始",{mind:8,support:7,body:-2,progress:8},"你把愿望从以后拿回今天",function(){state.flags.soloReopened=true;}),
+        choice("现在重新打开孩子计划","承认时间变化，从信息和身边的人重新开始",{mind:8,support:7,body:-2,progress:8},"你把愿望从以后拿回今天",function(){state.flags.soloReopened=true;}),
         choice("我还没准备好，再过几年","继续保留可能，也继续消耗窗口",{career:6,mind:4,body:-10,progress:1},"决定再次被交给更晚的自己",function(){state.flags.soloReopened=false;})
       ]
     };
@@ -2902,15 +2902,15 @@
         stage:"家庭准备期",title:"钱够了，但凌晨三点该打给谁",face:"友",place:"service",scene:"path",art:{sheet:"nine",cell:6},
         copy:"你能买到很好的医疗和照护服务，却仍需要非商业关系中的紧急联系人。一个人的经济能力，不等于一个人完成所有照顾。",
         choices:[
-          choice("和三位朋友签下真实的照护约定","让财富之外也有人能接住你和孩子",{support:14,trust:6,mind:5,progress:10},"你的独立计划拥有了具体支持网",function(){state.flags.supportBuilt=true;}),
-          choice("只依赖付费服务","边界清晰，突发情况下仍然孤立",{money:-8,support:5,mind:-5,progress:5},"服务充足，关系支点仍然偏少",function(){state.flags.supportBuilt=false;})
+          choice("和三位朋友签下真实的照护约定","让财富之外也有人能接住你和孩子",{support:14,trust:6,mind:5,progress:10},"你的独立计划拥有了具体帮手",function(){state.flags.supportBuilt=true;}),
+          choice("只依赖付费服务","边界清晰，但真出事时还是没人能来",{money:-8,support:5,mind:-5,progress:5},"服务买好了，半夜能来的人仍然没有",function(){state.flags.supportBuilt=false;})
         ]
       };
     }
     if(state.flags.soloTrack==="love"){
       return {
         stage:"家庭准备期",title:"两个女人要怎样被看见为一个家",face:"林",place:"service",scene:"path",art:{sheet:"collage",cell:3},
-        copy:state.flags.loveCommitted?"你和林然开始咨询共同居住、医疗知情、监护意愿和照护分工。爱让你们靠近，制度和责任需要另外一份清单。":"你准备独立推进，林然愿意作为伴侣或朋友进入支持名单，但不自动成为共同母亲。",
+        copy:state.flags.loveCommitted?"你和林然开始咨询共同居住、医疗知情、监护意愿和照护分工。爱让你们靠近，制度和责任需要另外一份清单。":"你准备独立推进，林然愿意作为伴侣或朋友进入帮手名单，但不自动成为共同母亲。",
         choices:[
           choice("把医疗、财务和照护责任逐项写清","让这个家先在行动上成立",{trust:11,intimacy:7,support:10,money:-5,progress:10},"你们建立了可执行的女性伴侣家庭方案",function(){state.flags.supportBuilt=true;}),
           choice("先相爱，手续和分工以后再说","亲密继续，关键责任仍然悬空",{intimacy:8,trust:-6,support:-3,mind:-5,progress:5},"爱情更深，家庭方案仍未落地",function(){state.flags.supportBuilt=false;})
@@ -2921,7 +2921,7 @@
       stage:"晚年分岔期",title:"又一个五年被工作和日常填满",face:"我",place:"company",scene:"life",art:{sheet:"moments",cell:10},
       copy:"你不是没有生活，也不是没有被爱。只是孩子仍然没有进入这个家，而可以执行的身体与时间余地越来越少。",
       choices:[
-        choice("最后一次建立资金和支持方案","不保证成功，但让愿望得到一次真实行动",{money:8,support:10,mind:-3,progress:9},"你为最后一次孩子计划搭起支点",function(){state.flags.supportBuilt=true;}),
+        choice("最后一次把钱和帮手安排好","不保证成功，但让愿望得到一次真实行动",{money:8,support:10,mind:-3,progress:9},"你为最后一次孩子计划找好了钱和人",function(){state.flags.supportBuilt=true;}),
         choice("接受这一生不再启动孩子计划","继续过自己的生活，也接受本局目标不会完成",{career:8,mind:7,progress:0},"你决定不再让孩子进入这段人生",function(){state.flags.retireLeaning=true;})
       ]
     };
@@ -2931,7 +2931,7 @@
     var choices=[];
     var track=state.flags.soloTrack;
     if(track==="wealth"){
-      choices.push(choice("使用供精完成单身辅助生育","由你做决定，让资金与支持网共同托住",{money:-14,body:-6,support:5,progress:18},"选择了供精单身辅助生育",function(){state.path="供精·单身辅助生育";}));
+      choices.push(choice("使用供精完成单身辅助生育","由你做决定，让钱和身边的人一起接住生活",{money:-14,body:-6,support:5,progress:18},"选择了供精单身辅助生育",function(){state.path="供精·单身辅助生育";}));
       choices.push(choice("递交单身领养申请","让亲子关系从长期承诺开始",{money:-8,support:8,mind:5,progress:17},"选择了单身领养",function(){state.path="单身领养";}));
       choices.push(choice("让财富继续增长，不再启动孩子计划","拥有很多选择，但不再把任何一种变成孩子",{career:8,money:10,mind:6,progress:0},"你选择了没有孩子进入家庭的人生",function(){state.path="没有孩子进入家庭";},{ending:"retirement"}));
     }else if(track==="love"&&state.flags.loveCommitted){
@@ -2989,7 +2989,7 @@
   }
 
   function lockPathChoices(choices){
-    var criticalLabels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"照护网",mind:"心力"};
+    var criticalLabels={money:"资金",career:"事业",body:"身体",trust:"共识",intimacy:"亲密",support:"帮手",mind:"心力"};
     for(var i=0;i<choices.length;i++){
       var c=choices[i];
       if(c.ending) continue;
@@ -3011,9 +3011,9 @@
       }else if(!c.locked && /辅助生育|供精/.test(c.title) && state.metrics.money<38){
         c.locked=true;c.lockReason="资金低于 38，当前无法承担辅助生育方案";
       }else if(!c.locked && /领养/.test(c.title) && state.metrics.support<45){
-        c.locked=true;c.lockReason="照护网低于 45，领养预评估尚未通过";
+        c.locked=true;c.lockReason="帮手低于 45，领养预评估尚未通过";
       }else if(!c.locked && /共同养育/.test(c.title) && state.metrics.support<50){
-        c.locked=true;c.lockReason="照护网低于 50，共养契约缺少稳定支点";
+        c.locked=true;c.lockReason="帮手低于 50，还没有足够稳定的人能来帮忙";
       }
     }
   }
@@ -3022,14 +3022,15 @@
     var echoBits=[];
     echoBits.push(state.flags.wishClear?"第一次约会说清的愿望，已经变成共同决策。":"第一次约会没有说透的愿望，在这一刻增加了协商成本。");
     if(state.root.key==="chen") echoBits.push(state.flags.familyBoundary?"陈牧已经能和你共同守住父母边界。":"陈牧的父母仍然会进入小家庭的决定。");
-    else if(state.root.key==="shen") echoBits.push(state.flags.familyBoundary?"没有父母托底，你们主动建立了照护网。":"付费服务仍未完全填补关系支点。");
+    else if(state.root.key==="shen") echoBits.push(state.flags.familyBoundary?"父母帮不上忙，你们找到了自己的帮手。":"花钱买的服务，仍代替不了半夜能来的人。");
     else echoBits.push(state.flags.familyBoundary?"孩子的住处和照护底线已经写清。":"自由仍然没有变成稳定的照护地址。");
     echoBits.push(state.flags.checkup?"按时完成的复查保留了更多技术选择。":"被推迟的复查缩窄了身体与时间余地。");
     var naturalBody=state.flags.checkup?-3:-11;
+    var unmarried=state.flags.marriageMode==="unmarried";
     var choices=[
-      choice("进入自然生育窗口","按身体节奏开始尝试",{body:naturalBody,trust:5,intimacy:4,mind:3,progress:15},"选择了共同自然生育",function(){state.path="共同自然生育";}),
-      choice("启动辅助生育方案","用技术扩大时间与可能性",{money:-12,body:-5,mind:-2,progress:17},"选择了共同辅助生育",function(){state.path="共同辅助生育";}),
-      choice("递交领养预申请","让亲子关系从承诺开始",{money:-6,support:8,mind:4,progress:16},"选择了共同领养",function(){state.path="共同领养";})
+      choice("进入自然生育窗口","按身体节奏开始尝试",{body:naturalBody,trust:5,intimacy:4,mind:3,progress:15},unmarried?"选择了不婚共同生育":"选择了婚内自然生育",function(){state.path=unmarried?"不婚共同生育":"婚内自然生育";}),
+      choice("启动辅助生育方案","用技术扩大时间与可能性",{money:-12,body:-5,mind:-2,progress:17},unmarried?"选择了不婚共同辅助生育":"选择了婚内辅助生育",function(){state.path=unmarried?"不婚共同辅助生育":"婚内辅助生育";}),
+      choice("递交领养预申请","让亲子关系从承诺开始",{money:-6,support:8,mind:4,progress:16},unmarried?"选择了不婚共同领养":"选择了婚内共同领养",function(){state.path=unmarried?"不婚共同领养":"婚内共同领养";})
     ];
     lockPathChoices(choices);
     if(!choices.some(function(item){return !item.locked;})){
@@ -3045,10 +3046,10 @@
     var p=state.path;
     if(p.indexOf("领养")>=0){
       return {stage:"抵达期",title:"交接日的门在面前打开",face:"家",
-        copy:"材料、评估和等待都已完成。社工带着孩子走进房间，你准备的住处、时间与支持网，从这一刻起有了具体的名字。",
+        copy:"材料、评估和等待都已完成。社工带着孩子走进房间，你准备的住处、时间与帮手，从这一刻起有了具体的名字。",
         choices:[
           choice("完成今天的家庭交接","让承诺从此刻开始生效",{support:6,mind:8,progress:25},"孩子正式进入了这个家"),
-          choice("请支持网一起迎接孩子","让新家庭从第一天就不孤立",{support:12,mind:5,money:-3,progress:25},"大家一起把孩子迎进家门")
+          choice("请帮手一起迎接孩子","让新家庭从第一天就不孤立",{support:12,mind:5,money:-3,progress:25},"大家一起把孩子迎进家门")
         ]};
     }
     if(p.indexOf("共同养育")>=0){
@@ -3056,7 +3057,7 @@
         copy:"协议、居住、财务与紧急联系人早已确认。今天，孩子真正来到这群成年人中间，所有写在纸上的责任开始进入生活。",
         choices:[
           choice("让每个人接住自己的部分","共同养育从今天正式开始",{trust:8,support:9,progress:25},"孩子进入共同养育家庭"),
-          choice("把孩子抱到大家中间","让支持网成为孩子的第一份礼物",{mind:5,support:10,progress:25},"大家一起迎接孩子进入家庭")
+          choice("把孩子抱到大家中间","让孩子从第一天就有人搭把手",{mind:5,support:10,progress:25},"大家一起迎接孩子进入家庭")
         ]};
     }
     if(p.indexOf("辅助")>=0){
@@ -3064,14 +3065,14 @@
         copy:"评估、治疗、等待与反复调整都走到了尽头。孩子平安出生，技术没有替你做决定，它帮助你的决定真正抵达了生命。",
         choices:[
           choice("把孩子抱进怀里","让家庭从这一刻正式开始",{trust:6,support:8,mind:8,progress:25},"孩子平安进入家庭"),
-          choice("让最亲近的人一起迎接","让支持从第一天真正到位",{body:4,mind:8,support:10,progress:25},"孩子被大家迎进家庭")
+          choice("让最亲近的人一起迎接","让帮忙从第一天真正到位",{body:4,mind:8,support:10,progress:25},"孩子被大家迎进家庭")
         ]};
     }
     return {stage:"抵达期",title:"孩子的哭声在清晨响起",face:"家",
       copy:"经历怀孕、等待与照顾之后，孩子平安出生。它不是命运奖赏，而是身体、关系、资源和一次次协商共同抵达的结果。",
       choices:[
         choice("把孩子抱进这个家","让共同照顾清单从今天生效",{trust:8,support:8,progress:25},"孩子平安进入家庭"),
-        choice("让支持网一起迎接孩子","让你的安全排在所有期待之前",{body:8,mind:7,support:6,progress:25},"孩子被大家迎进家庭")
+        choice("让帮手一起迎接孩子","让你的安全排在所有期待之前",{body:8,mind:7,support:6,progress:25},"孩子被大家迎进家庭")
       ]};
   }
 
@@ -3093,7 +3094,7 @@
     var person=document.getElementById("v3-confirm-person");
     person.className="v3-confirm-person v3-sprite v3-sprite-"+key;
     document.getElementById("v3-confirm-scene").className="v3-confirm-scene v3-confirm-env-"+key;
-    document.getElementById("v3-confirm-tag").textContent="同行者 · "+root.name+" · "+root.tag;
+    document.getElementById("v3-confirm-tag").textContent="伴侣 · "+root.name+" · "+root.tag;
     document.getElementById("v3-confirm-quote").textContent="“"+root.quote+"”";
     renderProfileSheet();
     show("v3-confirm");
@@ -3157,7 +3158,7 @@
     }
     document.getElementById("v3-path-list").innerHTML=html;
     var goals=state.root.key==="solo"
-      ?["选择这段人生先走向哪里","让财富、爱情或时间真正发生","看清身体与生育信息","建立能接住生活的支点","决定是否继续孩子目标","选定或停止孩子路径","迎接孩子进入家庭"]
+      ?["选择这段人生先走向哪里","让财富、爱情或时间真正发生","看清身体与生育信息","找出谁能在需要时搭把手","决定是否继续孩子目标","选定或停止孩子路径","迎接孩子进入家庭"]
       :["说清生育愿望","验证真实分工","看清身体与资源","建立家庭边界","确认可执行承诺","选定孩子路径","迎接孩子进入家庭"];
     document.getElementById("v3-goal").textContent=goals[Math.min(state.step,goals.length-1)];
     document.getElementById("v3-bottom-path").textContent=state.root.key==="solo"
@@ -3179,9 +3180,9 @@
       {id:"calendar",icon:"历",name:"人生日历",detail:"当前 "+season(state.step+(state.elapsed||0))+"，正在经历第 "+(state.history.length+1)+" 个关键事件。",source:"随进度实时更新"}
     ];
     if(state.flags.checkup) items.push({id:"checkup",icon:"检",name:"体检报告",detail:"身体信息已被确认，技术与时间选择不再只靠猜。",source:"完成复查后获得"});
-    if(state.flags.supportBuilt||state.metrics.support>=55) items.push({id:"support",icon:"友",name:"支持名单",detail:"陪诊、临时照护与紧急联系人已经有了具体人选。",source:"照护网达到 55 或建立支持承诺"});
+    if(state.flags.supportBuilt||state.metrics.support>=55) items.push({id:"support",icon:"友",name:"帮手名单",detail:"陪你去医院、临时接手和半夜能赶来的人已经写清楚。",source:"帮手达到 55 或完成帮忙约定"});
     if(state.flags.fundReady||state.metrics.money>=65) items.push({id:"fund",icon:"储",name:"生育储备",detail:"已为医疗、手续、住房与照护留出专项缓冲。",source:"资金达到 65 或建立专项账户"});
-    if(state.flags.familyBoundary) items.push({id:"boundary",icon:"界",name:state.root.key==="shen"?"照护协议":state.root.key==="zhou"?"固定照护地址":"家庭边界",detail:state.root.key==="shen"?"没有父母托底，你们主动建立了朋友与专业服务共同组成的照护网。":state.root.key==="zhou"?"成年人可以流动，但孩子的住处与照护底线已经确定。":"伴侣与你已经共同说明父母的支持方式与进入边界。",source:"完成关键协商后获得"});
+    if(state.flags.familyBoundary) items.push({id:"boundary",icon:"界",name:state.root.key==="shen"?"帮忙约定":state.root.key==="zhou"?"固定住处":"家庭边界",detail:state.root.key==="shen"?"父母帮不上忙，你们找到了愿意半夜来的人，也买好了专业服务。":state.root.key==="zhou"?"大人可以流动，但孩子住哪里、谁来照顾已经写清。":"你和伴侣已经说清父母能怎么帮、什么时候先征得同意。",source:"完成关键协商后获得"});
     if(state.path!=="尚未确定") items.push({id:"route",icon:"路",name:state.path,detail:"这一局已经把资源集中到一条可执行的孩子路径。",source:"路径选择期获得"});
     return items;
   }
@@ -3195,8 +3196,8 @@
 
   function activePlace(event){
     if(event&&event.place) return event.place;
-    if(/领养|共同养育|路径|交接|支持网/.test(event.title)) return "service";
-    if(/约会|同行者|未来放上桌|承诺|共同生活|同一张表/.test(event.title)) return "cafe";
+    if(/领养|共同养育|路径|交接|帮手/.test(event.title)) return "service";
+    if(/约会|伴侣|新认识|未来放上桌|承诺|共同生活|同一张表/.test(event.title)) return "cafe";
     if(/晋升|工作|职业/.test(event.title)) return "company";
     if(/体检|医生|复查|产房|辅助/.test(event.title)) return "hospital";
     if(/父母|钥匙|家庭/.test(event.title)) return "parents";
@@ -3223,11 +3224,11 @@
   function metricDefinition(key){
     var descriptions={
       money:"医疗、手续、住房与照护都需要缓冲。资金不是幸福本身，但会决定哪些方案此刻可执行。",
-      career:"事业提供长期收入与身份支点，也会与陪伴时间发生真实碰撞。",
+      career:"事业带来长期收入，也让你保有自己的生活，但它会和陪伴时间发生真实碰撞。",
       body:"身体信息决定自然生育窗口，也影响辅助生育过程中的承受余地。",
       trust:"共识代表你们是否把孩子、责任、边界和风险说清楚。",
       intimacy:"亲密不是一句喜欢，而是在压力之下仍愿意靠近和理解。",
-      support:"照护网是能陪诊、临时接手和在紧急时出现的具体人。",
+      support:"帮手就是能陪你去医院、临时接手，半夜也愿意赶来的人。",
       mind:"心力代表你还能不能继续协商、等待和照顾自己。",
       progress:"生育进度汇总了信息、承诺和行动。达到 57 才能进入路径，最终需要 82。"
     };
@@ -3291,10 +3292,10 @@
     if(state.root.key==="solo"){
       var relationText=state.flags.soloTrack==="love"?(state.flags.loveCommitted?"林然愿意和你共同讨论成为母亲":"生命里出现了让你心动的林然"):(state.flags.afterBreakup?"结束与 "+state.flags.afterBreakup+" 的关系，独立准备中":"暂不选择伴侣，独立生活中");
       bits.push({title:"当前关系状态",text:relationText,note:"伴侣不是通关条件"});
-      bits.push({title:"支持网络",text:state.flags.supportBuilt?"已经确认具体照护承诺":"仍需要把“有人支持”变成具体分工",note:"照护网 "+Math.round(state.metrics.support)});
+      bits.push({title:"谁能搭把手",text:state.flags.supportBuilt?"已经有人答应在需要时来帮忙":"还需要问清谁真的能来",note:"帮手 "+Math.round(state.metrics.support)});
       bits.push({title:"这段人生先走向",text:state.flags.soloStart||"还没有决定",note:state.flags.soloTrack==="wealth"?"事业与财富":state.flags.soloTrack==="love"?"爱情与家庭":"时间仍在流动"});
     }else{
-      bits.push({title:"当前同行者",text:state.root.name+" · "+state.root.tag,note:"从约会开始"});
+      bits.push({title:"当前伴侣",text:state.root.name+" · "+state.root.tag,note:"从约会开始"});
       bits.push({title:"共识",text:state.flags.wishClear?"生育愿望已经说清":"仍有关键愿望没有完全说透",note:"共识 "+Math.round(state.metrics.trust)});
       bits.push({title:"现实承诺",text:state.flags.partnerLesson||"尚未经过现实磨合",note:state.flags.familyBoundary?"家庭边界已经共同建立":"家庭边界仍待协商"});
       bits.push({title:"亲密余量",text:state.metrics.intimacy>=55?"压力下仍保有连接":"关系需要被重新照顾",note:"亲密 "+Math.round(state.metrics.intimacy)});
@@ -3341,8 +3342,8 @@
       cafe:{name:"咖啡馆",copy:"关系开始、重新约会和把未来放上桌的地方。"},
       company:{name:"公司",copy:"事业、时间、房租与家庭预算发生碰撞的地方。"},
       hospital:{name:"医院",copy:"身体信息与生育技术方案变得具体的地方。"},
-      parents:{name:"父母家",copy:"支持能否进入、边界如何建立的地方。"},
-      service:{name:"家庭服务中心",copy:"领养、共同养育与支持网路径的正式入口。"}
+      parents:{name:"父母家",copy:"家人能怎么帮、边界怎么定的地方。"},
+      service:{name:"家庭服务中心",copy:"办理领养、共同养育，也能在这里找专业帮手。"}
     };
     var meta=placeMeta[place]||{name:"未知地点",copy:"这个地点尚未开放。"};
     var event=currentGameEvent(), current=event&&activePlace(event)===place;
@@ -3396,10 +3397,10 @@
       ["cafe","咖啡馆","约会、重新认识和把未来放上桌。"],
       ["company","公司","工作、收入、时间与家庭计划发生碰撞。"],
       ["hospital","医院","身体信息和生育技术变得具体。"],
-      ["parents","父母家","支持、边界和代际协商真正落地。"],
-      ["service","家庭服务中心","领养、共同养育和照护网的正式入口。"]
+      ["parents","父母家","家人能怎么帮、什么时候该先问你。"],
+      ["service","家庭服务中心","办理领养、共同养育，也能找专业帮手。"]
     ];
-    var html='<p class="v4-panel-lead">地图不是自由移动按钮。它帮助你理解：生育并不只发生在医院，还发生在工作、关系、家庭和公共支持系统里。</p><div class="v6-overview-grid">';
+    var html='<p class="v4-panel-lead">地图不是自由移动按钮。生育不只发生在医院，也发生在工作、关系、家人和那些愿意来帮忙的人之间。</p><div class="v6-overview-grid">';
     for(var i=0;i<places.length;i++){
       var visits=state.history.filter((function(place){return function(item){return item.place===place;};})(places[i][0])).length;
       html+='<button class="v6-overview-card '+(places[i][0]===current?"is-current":"")+'" data-v4-place="'+places[i][0]+'"><span class="v6-overview-head"><b>'+places[i][1]+'</b><b>'+(places[i][0]===current?"当前":"")+'</b></span><p>'+places[i][2]+'<br>已留下 '+visits+' 条记录</p></button>';
@@ -3476,7 +3477,7 @@
     if(/自然生育|同行/.test(title)) sprite=state.root.key==="solo"?"friend":state.root.key;
     if(/复查|辅助|医生|身体|医疗|治疗/.test(title)) sprite="doctor";
     else if(/领养|交接|社工/.test(title)) sprite="social";
-    else if(/朋友|支持网|支持|大家/.test(title)) sprite="friend";
+    else if(/朋友|帮手|支持|大家/.test(title)) sprite="friend";
     else if(/父母|家人|边界|安抚/.test(title)) sprite="family";
     if(/自己扛|独自|独立方案|独立启动|安静记住/.test(title)) sprite="solo";
     if(/孩子|抱进|迎接/.test(title)) sprite=/大家|支持|亲近/.test(title)?"friend":"family";
@@ -3506,7 +3507,7 @@
     else if(/心动|相爱|爱情|彼此|再喝一杯|两地生活|享受|观察|约会|同行|相处/.test(title)) atlas=1;
     else if(/保持原来的生活|购物|消费|享受当下/.test(title)) atlas=9;
     else if(/账户|预算|存钱|费用|房租|缺口|资金|财富|事业和钱|收入线/.test(title)) atlas=8;
-    else if(/朋友|支持网|支持|大家|亲近/.test(title)) atlas=7;
+    else if(/朋友|帮手|支持|大家|亲近/.test(title)) atlas=7;
     else if(/自己扛|独自|承担一点|补上全部/.test(title)) atlas=3;
     else if(/钥匙|边界|父母|家人|安抚|进门|孩子.*(?:固定住处|住处|照护)/.test(title)) atlas=6;
     else if(/工作|晋升|事业|忙/.test(title)) atlas=5;
@@ -3534,9 +3535,9 @@
     if(/备用钥匙|父母|边界/.test(event.title)) return {sheet:"collage",cell:2};
     if(/晋升|加班|工作/.test(event.title)) return {sheet:"nine",cell:4};
     if(/房租|费用|预算|账户/.test(event.title)) return {sheet:"moments",cell:7};
-    if(/支持网|朋友/.test(event.title)) return {sheet:"nine",cell:6};
+    if(/帮手|朋友/.test(event.title)) return {sheet:"nine",cell:6};
     if(/体检|医生|复查/.test(event.title)) return {sheet:"plan",cell:3};
-    if(/同行者/.test(event.title)) return {sheet:"collage",cell:7};
+    if(/伴侣|新认识/.test(event.title)) return {sheet:"collage",cell:7};
     if(/承诺|共同生活|同一张表|资源之外/.test(event.title)) return {sheet:"plan",cell:2};
     if(/约会|未来放上桌/.test(event.title)) return {sheet:"nine",cell:0};
     return {sheet:"moments",cell:0};
@@ -3706,12 +3707,12 @@
 
   function endingTitle(type,detail){
     if(type==="breakup"){
-      return {chen:"婆婆的钥匙留在门外",shen:"赞助人不是同行者",zhou:"末班车开走以后"}[state.root.key]||"这段关系到这里";
+      return {chen:"婆婆的钥匙留在门外",shen:"钱到了，人没来",zhou:"末班车开走以后"}[state.root.key]||"这段关系到这里";
     }
     if(type==="retirement") return "紫花养老院";
     if(type==="failure"){
       return {
-        money:"钱花完以前，路先停了",career:"事业失去支点的那一年",body:"身体替你按下暂停",trust:"没有说出口的共同答案",
+        money:"钱花完以前，路先停了",career:"工作撑不住的那一年",body:"身体替你按下暂停",trust:"没有说出口的共同答案",
         intimacy:"两个人走成了两条路",support:"凌晨三点没有人接电话",mind:"心力见底以后",progress:"还没准备好的这个家"
       }[detail]||"这条人生路线暂停了";
     }
@@ -3728,17 +3729,17 @@
     if(type==="failure"){
       var failureHooks={
         money:"我第 "+year+" 年就把存款花光了，你能走多远？",
-        career:"我第 "+year+" 年就把事业支点丢了，你能走多远？",
+        career:"我第 "+year+" 年事业就撑不住了，你能走多远？",
         body:"我第 "+year+" 年就被身体按下暂停，你能走多远？",
         trust:"我第 "+year+" 年就把共识磨没了，你能走多远？",
         intimacy:"我第 "+year+" 年就把两个人走成两条路，你能走多远？",
-        support:"我第 "+year+" 年就让照护网断了，你能走多远？",
+        support:"我第 "+year+" 年就没人能来搭把手了，你能走多远？",
         mind:"我第 "+year+" 年就把心力耗光了，你能走多远？",
         progress:"我第 "+year+" 年还没准备好这个家，你能走多远？"
       };
       return failureHooks[detail]||("我第 "+year+" 年停在了这里，你能走多远？");
     }
-    if(state.root.key==="solo"||/领养/.test(state.path)){
+    if(state.root.key==="solo"||state.flags.marriageMode==="unmarried"||/领养|不婚/.test(state.path)){
       return "不结婚，能生娃吗？这个游戏说可以。";
     }
     return "生娃之前，我们先谈了 "+decisions+" 次。";
@@ -3754,7 +3755,7 @@
     var origin=state.root.key==="solo"?"独自开始":"与 "+state.root.name+" 开始";
     var failureStatus={
       money:"资金跌破底线",career:"事业跌破底线",body:"身体跌破底线",trust:"共识跌破底线",
-      intimacy:"亲密跌破底线",support:"照护网跌破底线",mind:"心力跌破底线",progress:"生育进度停滞"
+      intimacy:"亲密跌破底线",support:"帮手跌破底线",mind:"心力跌破底线",progress:"生育进度停滞"
     };
     var status;
     if(type==="win") status="通关路线 · "+state.path;
@@ -3860,7 +3861,7 @@
   }
 
   function showFailure(metric){
-    var labels={money:"资金耗尽",career:"事业支点断裂",body:"身体亮起红灯",trust:"共识崩塌",intimacy:"亲密关系失联",support:"照护网断裂",mind:"心力透支",progress:"孩子路径尚未准备完成"};
+    var labels={money:"资金耗尽",career:"事业撑不住了",body:"身体亮起红灯",trust:"共识崩塌",intimacy:"亲密关系失联",support:"半夜没人能搭把手",mind:"心力透支",progress:"孩子路径尚未准备完成"};
     shareEndingCard("failure",metric,"这不是“不配拥有孩子”。暂停只是提醒：这条路线还需要更多资源、更多协商，或者换一种抵达方式。",
       '<button class="v3-btn v3-soft" data-v3-action="retry">从这条路重开</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button>');
     show("v3-ending");
