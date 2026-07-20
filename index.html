@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#17130f" />
 <title>我想生个娃｜像素人生模拟器</title>
+<link rel="preload" href="./pixel-character-busts-v1.png" as="image" fetchpriority="high" />
 <style>
   :root{
     /* V2 低饱和纸张 / 暗场 */
@@ -1109,7 +1110,7 @@
     height:250px;
     overflow:hidden;
     border:3px solid #663a33;
-    background-image:url("./cozy-indoor-night-atlas.png");
+    background-image:url("./温馨像素艺术室内夜景合集.png");
     background-size:auto 400%;
     background-repeat:no-repeat;
     image-rendering:pixelated;
@@ -1311,10 +1312,10 @@
     image-rendering:pixelated;
     box-shadow:inset 0 0 0 3px rgba(255,235,192,.52),4px 5px 0 rgba(73,35,36,.18);
   }
-  .v3-story-plan{background-image:url("./family-medical-planning.png");background-size:300% 400%;}
-  .v3-story-nine{background-image:url("./story-nine-scenes.png");background-size:300% 400%;}
-  .v3-story-moments{background-image:url("./warm-life-moments.png");background-size:300% 400%;}
-  .v3-story-collage{background-image:url("./family-life-collage.png");background-size:300% 400%;}
+  .v3-story-plan{background-image:url("./温馨家庭规划与医护生活.png");background-size:300% 400%;}
+  .v3-story-nine{background-image:url("./温暖生活的九个片段.png");background-size:300% 400%;}
+  .v3-story-moments{background-image:url("./温馨生活点滴.png");background-size:300% 400%;}
+  .v3-story-collage{background-image:url("./温馨家庭生活的像素拼贴.png");background-size:300% 400%;}
   .v3-wide-0{background-position:0 0;}
   .v3-wide-1{background-position:50% 0;}
   .v3-wide-2{background-position:100% 0;}
@@ -1653,7 +1654,7 @@
   #v3-confirm{
     background:
       linear-gradient(rgba(45,22,19,.18),rgba(45,22,19,.38)),
-      url("./cozy-indoor-night-atlas.png") 66.667% 0/400% auto;
+      url("./温馨像素艺术室内夜景合集.png") 66.667% 0/400% auto;
   }
   .v3-confirm-card{
     width:min(980px,calc(100vw - 48px));
@@ -1753,7 +1754,7 @@
   .v3-side-card::before{
     content:"";display:block;width:100%;height:132px;margin:0 0 13px;
     border:2px solid var(--v4-wood-800);
-    background:url("./cozy-indoor-night-atlas.png") 66.667% 0/400% auto no-repeat;
+    background:url("./温馨像素艺术室内夜景合集.png") 66.667% 0/400% auto no-repeat;
     image-rendering:pixelated;
   }
   .v3-event{padding:20px 22px 24px;}
@@ -2211,6 +2212,175 @@
     #v3-game .v3-calendar{min-width:82px;}
     .v6-system-trigger{padding:6px;font-size:10px;}
   }
+
+  /* V2.11 · 人物专用半身像：不再把全身人物压缩进小头像框 */
+  .v3-origin-card .v3-portrait,
+  .v3-confirm-person,
+  #v3-game .v3-scene-face.v3-sprite-solo,
+  #v3-game .v3-scene-face.v3-sprite-chen,
+  #v3-game .v3-scene-face.v3-sprite-shen,
+  #v3-game .v3-scene-face.v3-sprite-zhou,
+  .v5-feedback-face.v3-sprite-solo,
+  .v5-feedback-face.v3-sprite-chen,
+  .v5-feedback-face.v3-sprite-shen,
+  .v5-feedback-face.v3-sprite-zhou{
+    background-image:url("./pixel-character-busts-v1.png");
+    background-size:400% 100%;
+    background-repeat:no-repeat;
+    image-rendering:pixelated;
+  }
+  .v3-origin-card .v3-portrait{width:132px;height:149px;}
+  .v3-confirm-person{width:220px;height:248px;bottom:-2px;}
+  #v3-game .v3-scene-face.v3-sprite-solo,
+  #v3-game .v3-scene-face.v3-sprite-chen,
+  #v3-game .v3-scene-face.v3-sprite-shen,
+  #v3-game .v3-scene-face.v3-sprite-zhou{
+    width:96px;height:108px;border-radius:14px;
+  }
+  .v5-feedback-face.v3-sprite-solo,
+  .v5-feedback-face.v3-sprite-chen,
+  .v5-feedback-face.v3-sprite-shen,
+  .v5-feedback-face.v3-sprite-zhou{width:96px;height:108px;}
+  @media(max-width:760px){
+    .v3-origin-card .v3-portrait{width:106px;height:119px;}
+    .v3-confirm-person{width:150px;height:169px;}
+    #v3-game .v3-scene-face.v3-sprite-solo,
+    #v3-game .v3-scene-face.v3-sprite-chen,
+    #v3-game .v3-scene-face.v3-sprite-shen,
+    #v3-game .v3-scene-face.v3-sprite-zhou{
+      width:76px;height:86px;
+    }
+    .v5-feedback-face.v3-sprite-solo,
+    .v5-feedback-face.v3-sprite-chen,
+    .v5-feedback-face.v3-sprite-shen,
+    .v5-feedback-face.v3-sprite-zhou{width:76px;height:86px;}
+  }
+
+  /* V2.12 · 结局即分享卡：一张截图能看懂这一生 */
+  .v3-ending-card.v8-share-shell{
+    width:min(620px,calc(100vw - 34px));
+    max-height:calc(100vh - 28px);
+    padding:0;
+    overflow:auto;
+    border:0;
+    background:transparent;
+    box-shadow:none;
+    text-align:left;
+  }
+  .v8-share-card{
+    position:relative;
+    overflow:hidden;
+    padding:24px 26px 20px;
+    border:4px solid #542d29;
+    background:
+      radial-gradient(circle at 12% 9%,rgba(213,122,138,.22) 0 3px,transparent 4px),
+      radial-gradient(circle at 87% 16%,rgba(157,111,166,.23) 0 4px,transparent 5px),
+      linear-gradient(150deg,#fff0c8 0%,#f7dca8 58%,#efc681 100%);
+    background-size:36px 36px,48px 48px,auto;
+    box-shadow:inset 0 0 0 4px #fff3cb,0 9px 0 rgba(65,31,27,.55);
+    color:#4a2926;
+  }
+  .v8-share-card::before,.v8-share-card::after{
+    content:"";position:absolute;z-index:0;width:112px;height:112px;border-radius:50%;
+    opacity:.2;filter:blur(.2px);pointer-events:none;
+    background:radial-gradient(circle at 50% 50%,#9d6ca2 0 13%,transparent 14%),
+      radial-gradient(circle at 28% 47%,#bd7688 0 12%,transparent 13%),
+      radial-gradient(circle at 68% 30%,#c98d88 0 11%,transparent 12%);
+  }
+  .v8-share-card::before{right:-43px;top:-39px;}
+  .v8-share-card::after{left:-50px;bottom:-47px;}
+  .v8-share-card>*{position:relative;z-index:1;}
+  .v8-share-brand{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding-bottom:10px;border-bottom:2px dashed rgba(111,62,48,.48);
+    color:#815041;font-size:10px;font-weight:1000;letter-spacing:.12em;
+  }
+  .v8-share-brand b{font-size:12px;color:#5f342f;}
+  .v8-share-hero{
+    display:grid;grid-template-columns:104px minmax(0,1fr);
+    gap:15px;align-items:center;padding:15px 0 12px;
+  }
+  .v8-share-avatar{
+    width:98px;height:110px;
+    border:3px solid #62372f;border-radius:18px;
+    background-image:url("./pixel-character-busts-v1.png");
+    background-size:400% 100%;
+    background-repeat:no-repeat;
+    background-color:#efc986;
+    box-shadow:inset 0 0 0 3px #ffe9b4,0 5px 0 rgba(85,43,35,.25);
+  }
+  .v8-share-kicker{
+    margin-bottom:5px;color:#a05a49;font-size:10px;font-weight:1000;letter-spacing:.16em;
+  }
+  .v8-share-title{
+    margin:0 0 7px;
+    color:#512c2b;
+    font:1000 30px/1.16 "Songti SC","STSong",serif;
+    text-wrap:balance;
+  }
+  .v8-share-route{
+    display:inline-block;padding:5px 8px;
+    border:2px solid #7a4638;background:#f6c978;
+    color:#674035;font-size:11px;font-weight:1000;
+  }
+  .v8-share-memories{
+    margin:0 0 13px;padding:13px 14px;
+    border:3px solid #734236;background:rgba(255,242,205,.78);
+    box-shadow:inset 0 0 0 2px rgba(238,188,111,.55);
+  }
+  .v8-share-memories h3{
+    margin:0 0 9px;color:#7c473a;font-size:11px;letter-spacing:.12em;
+  }
+  .v8-share-memory{
+    display:grid;grid-template-columns:25px minmax(0,1fr);gap:8px;align-items:start;
+  }
+  .v8-share-memory+.v8-share-memory{margin-top:7px;}
+  .v8-share-memory b{
+    width:24px;height:24px;display:grid;place-items:center;
+    border:2px solid #7a4638;background:#b76549;color:#fff2cf;font-size:9px;
+  }
+  .v8-share-memory span{font-size:12px;line-height:1.55;color:#5f3a34;font-weight:800;}
+  .v8-share-closing{
+    margin:0;padding:10px 12px;
+    border-left:5px solid #a85b4b;background:rgba(235,188,117,.52);
+    color:#5d3833;font:900 14px/1.65 "Songti SC","STSong",serif;
+  }
+  .v8-share-stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0;
+  }
+  .v8-share-stat{
+    padding:7px 5px;border:2px solid #825044;background:rgba(255,244,218,.78);text-align:center;
+  }
+  .v8-share-stat b{display:block;color:#a95543;font-size:15px;}
+  .v8-share-stat span{display:block;margin-top:2px;color:#805e53;font-size:9px;}
+  .v8-share-footer{
+    display:grid;grid-template-columns:1fr;gap:3px;
+    padding-top:10px;border-top:2px dashed rgba(111,62,48,.48);
+  }
+  .v8-share-footer b{font-size:13px;color:#5a302d;}
+  .v8-share-footer span{font-size:11px;color:#7b4c41;font-weight:900;}
+  .v8-share-footer small{
+    overflow-wrap:anywhere;color:#9b604c;font:800 9px/1.4 ui-monospace,monospace;
+  }
+  .v8-share-hint{margin:15px 0 10px;text-align:center;color:#ffe9bd;font-size:11px;font-weight:900;}
+  .v8-share-actions{padding-bottom:8px;}
+  .v8-share-actions .v3-btn{min-height:42px;}
+  @media(max-width:640px){
+    #v3-ending{align-items:flex-start;padding:10px 8px;overflow:auto;}
+    .v3-ending-card.v8-share-shell{width:min(100%,430px);max-height:none;margin:auto;}
+    .v8-share-card{padding:17px 16px 15px;border-width:3px;}
+    .v8-share-hero{grid-template-columns:78px minmax(0,1fr);gap:10px;padding:11px 0 9px;}
+    .v8-share-avatar{width:74px;height:83px;border-radius:13px;}
+    .v8-share-title{font-size:23px;}
+    .v8-share-memories{padding:10px;margin-bottom:9px;}
+    .v8-share-memory+.v8-share-memory{margin-top:5px;}
+    .v8-share-memory span{font-size:11px;line-height:1.45;}
+    .v8-share-closing{padding:8px 10px;font-size:12px;}
+    .v8-share-stats{margin:9px 0;}
+    .v8-share-hint{margin:11px 0 8px;}
+    .v8-share-actions{gap:7px;}
+    .v8-share-actions .v3-btn{min-height:38px;padding:8px 11px;font-size:11px;}
+  }
 </style>
 <script id="v3-pixel-life-app">
 (function(){
@@ -2256,6 +2426,7 @@
   var toastTimer = null;
   var feedbackTimer = null;
   var pendingAdvance = null;
+  var sharePayload = null;
   var busy = false;
   var playerProfile = {age:25,career:0,interest:0,wish:0,goal:0};
   var profileOptions = {
@@ -2498,7 +2669,7 @@
         copy:"第三次约会，陈牧的妈妈已经打来两次电话，问你爱吃什么、以后住哪边。陈牧觉得这叫热情，你第一次看见他的稳定背后站着一个很近的家。",
         choices:[
           choice("先问清孩子和父母边界","喜欢可以继续，边界必须先出现",{trust:10,intimacy:3,mind:5,progress:8},"第一次约会就把小家庭边界放上桌",function(){state.flags.wishClear=true;}, {response:"陈牧愣了一下，随后把手机扣在桌上：“你说得对。孩子和我们的家，应该先由我们决定。”"}),
-          choice("先享受这份被照顾的感觉","关系更暖，边界问题留到以后",{trust:-4,intimacy:8,support:4,mind:3,progress:4},"你先接住了热情，没有讨论它会走多近",function(){state.flags.wishClear=false;})
+          choice("先享受这份被照顾的感觉","关系更暖，边界问题留到以后",{trust:-4,intimacy:8,support:4,mind:3,progress:4},"你先接住了热情，没有讨论它会走多近",function(){state.flags.wishClear=false;}, {response:"陈牧顺手回了母亲一句“都可以”，又笑着给你夹菜：“以后慢慢谈。”热情接住了你，边界却没有被说出来。"})
         ]
       };
     }
@@ -2508,7 +2679,7 @@
         copy:"沈明临时结束一场融资会，直接把餐厅升级成顶楼包间。他道歉、买单、安排车，却没有解释下一次会不会仍然让工作先到。",
         choices:[
           choice("不要补偿，告诉我你能交出多少时间","把时间当成家庭资源谈清楚",{trust:10,intimacy:4,career:-2,mind:5,progress:8},"第一次约会就把时间责任说清",function(){state.flags.wishClear=true;}, {response:"沈明没有再叫服务员加菜。他打开日历：“你要的不是更贵的晚餐，是我真的出现。这个我记住了。”"}),
-          choice("接受他的解决方式","资源令人安心，时间问题继续等待",{money:5,trust:-5,intimacy:5,career:5,progress:4},"你接受了补偿，也接受了暂时缺席",function(){state.flags.wishClear=false;})
+          choice("接受他的解决方式","资源令人安心，时间问题继续等待",{money:5,trust:-5,intimacy:5,career:5,progress:4},"你接受了补偿，也接受了暂时缺席",function(){state.flags.wishClear=false;}, {response:"沈明确认司机已经在楼下，终于松了口气：“我会把后面的事安排好。”晚餐被补偿了，他能交出的时间仍没有答案。"})
         ]
       };
     }
@@ -2517,7 +2688,7 @@
       copy:"周屿记得你随口提过的歌，也听懂你为什么想要孩子。末班车广播响起时，他说想和你一直走下去，却笑着说自己从没想过固定在哪座城。",
       choices:[
         choice("问他：自由里有没有共同责任","让心动和现实同时出现",{trust:9,intimacy:7,mind:5,progress:8},"你第一次问自由能不能承担责任",function(){state.flags.wishClear=true;}, {response:"周屿没有立刻回答。他陪你等到车来：“我想试着给你一个不是诗的答案。”"}),
-        choice("先跟着这份心动走","亲密迅速升温，未来仍没有地址",{trust:-3,intimacy:11,mind:5,progress:4},"你们先拥有了热烈，没有拥有共同地址",function(){state.flags.wishClear=false;})
+        choice("先跟着这份心动走","亲密迅速升温，未来仍没有地址",{trust:-3,intimacy:11,mind:5,progress:4},"你们先拥有了热烈，没有拥有共同地址",function(){state.flags.wishClear=false;}, {response:"周屿牵着你跑进末班车，笑着说“以后再想那么远”。心动跟着列车向前，共同生活仍没有地址。"})
       ]
     };
   }
@@ -2528,8 +2699,8 @@
         stage:"相处期",title:"备用钥匙交给谁",face:"家",place:"parents",scene:"family",art:{sheet:"collage",cell:2},
         copy:"陈牧的妈妈提出拿一把新家的备用钥匙，理由是以后能来做饭、照顾孩子。陈牧说“都是一家人”，然后看向你。",
         choices:[
-          choice("让陈牧亲口说明进门规则","帮助可以进来，决定权留在小家庭",{trust:10,intimacy:4,support:5,mind:5,progress:9},"陈牧第一次站出来守住边界",function(){state.flags.partnerLesson="共同边界";state.flags.familyBoundary=true;}),
-          choice("先把钥匙交出去","眼下多了帮手，也多了未经同意的进入",{trust:-6,intimacy:-3,support:8,mind:-8,progress:5},"备用钥匙换来帮助，也带来持续介入",function(){state.flags.partnerLesson="边界未定";state.flags.familyBoundary=false;})
+          choice("让陈牧亲口说明进门规则","帮助可以进来，决定权留在小家庭",{trust:10,intimacy:4,support:5,mind:5,progress:9},"陈牧第一次站出来守住边界",function(){state.flags.partnerLesson="共同边界";state.flags.familyBoundary=true;}, {response:"陈牧把钥匙收回口袋：“妈，来之前先给我们打电话。需要帮忙时，我们会开口。”他第一次没有让你独自做那个扫兴的人。"}),
+          choice("先把钥匙交出去","眼下多了帮手，也多了未经同意的进入",{trust:-6,intimacy:-3,support:8,mind:-8,progress:5},"备用钥匙换来帮助，也带来持续介入",function(){state.flags.partnerLesson="边界未定";state.flags.familyBoundary=false;}, {response:"陈牧把备用钥匙递了过去：“这样以后省事。”门外多了一个随时能来的帮手，门内却少了一次共同同意。"})
         ]
       };
     }
@@ -2538,8 +2709,8 @@
         stage:"相处期",title:"紧急联系人那一栏空着",face:"沈",place:"hospital",scene:"clinic",art:{sheet:"collage",cell:8},
         copy:"体检表要求填写两位紧急联系人。沈明的父母早逝，他习惯只填自己；你的家人也不一定能随时出现。钱可以购买服务，却不能自动变成一个会在凌晨接电话的人。",
         choices:[
-          choice("一起建立朋友与专业照护名单","承认没有父母托底，再主动造一张网",{support:13,trust:9,mind:5,money:-4,progress:9},"你们第一次建立属于自己的支援网络",function(){state.flags.partnerLesson="主动造网";state.flags.familyBoundary=true;}),
-          choice("把高级护理套餐当作全部答案","资源更稳，人仍然缺席",{money:-6,support:5,trust:-5,intimacy:-4,mind:-5,progress:5},"服务被买下，紧急联系人仍然很少",function(){state.flags.partnerLesson="只有服务";state.flags.familyBoundary=false;})
+          choice("一起建立朋友与专业照护名单","承认没有父母托底，再主动造一张网",{support:13,trust:9,mind:5,money:-4,progress:9},"你们第一次建立属于自己的支援网络",function(){state.flags.partnerLesson="主动造网";state.flags.familyBoundary=true;}, {response:"沈明把“紧急联系人”单独建成一张表，第一次没有只填服务商：“我们去问愿意半夜接电话的人，也把能回报的事写清楚。”"}),
+          choice("把高级护理套餐当作全部答案","资源更稳，人仍然缺席",{money:-6,support:5,trust:-5,intimacy:-4,mind:-5,progress:5},"服务被买下，紧急联系人仍然很少",function(){state.flags.partnerLesson="只有服务";state.flags.familyBoundary=false;}, {response:"沈明当场升级了护理套餐：“专业的人更可靠。”付款成功的提示亮了，表格里的第二位紧急联系人仍然空着。"})
         ]
       };
     }
@@ -2547,8 +2718,8 @@
       stage:"相处期",title:"自由职业的房租缺口",face:"周",place:"company",scene:"life",art:{sheet:"collage",cell:4},
       copy:"周屿的一笔项目款又延迟了。他没有逃避，但这个月的房租和共同生活支出出现真实缺口。他说自己从小搬家，住在哪里都一样。",
       choices:[
-        choice("建立共同账户和最低收入线","保留自由，也给生活加上地基",{money:7,career:4,trust:8,intimacy:3,mind:5,progress:9},"周屿把浪漫之外的数字也放上桌",function(){state.flags.partnerLesson="共同落地";}),
-        choice("这次先替他补上全部缺口","保护眼前亲密，也放大长期波动",{money:-13,trust:-4,intimacy:6,mind:-6,progress:5},"你守住了这个月，风险仍留给下个月",function(){state.flags.partnerLesson="你在托底";})
+        choice("建立共同账户和最低收入线","保留自由，也给生活加上地基",{money:7,career:4,trust:8,intimacy:3,mind:5,progress:9},"周屿把浪漫之外的数字也放上桌",function(){state.flags.partnerLesson="共同落地";}, {response:"周屿把两个账户分别命名为“自由”和“共同生活”：“我不想被钱困住，也不该让你替我兜底。”"}),
+        choice("这次先替他补上全部缺口","保护眼前亲密，也放大长期波动",{money:-13,trust:-4,intimacy:6,mind:-6,progress:5},"你守住了这个月，风险仍留给下个月",function(){state.flags.partnerLesson="你在托底";}, {response:"周屿说下个项目到账就补给你。这个月被你的存款托住了，下个月仍要靠一句“应该会有”。"})
       ]
     };
   }
@@ -2559,8 +2730,8 @@
         stage:"现实期",title:"复查那天，他妈妈比你们先到",face:"医",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:3},
         copy:"医生需要你连续复查三次。陈牧请了假，但他的妈妈先替你问完所有问题，还开始安排以后由谁坐月子。身体是你的，家庭意见却已经挤进诊室。",
         choices:[
-          choice("请陈牧陪你完成复查并挡住代答","把身体信息和决定权放回你们手里",{body:10,trust:9,mind:6,money:-6,progress:11},"陈牧在诊室里第一次替你守住决定权",function(){state.flags.checkup=true;}),
-          choice("让他妈妈继续全程安排","省下心力，也失去一部分主动",{body:5,support:8,trust:-6,mind:-6,progress:6},"复查完成了，决定权却变得模糊",function(){state.flags.checkup=true;})
+          choice("请陈牧陪你完成复查并挡住代答","把身体信息和决定权放回你们手里",{body:10,trust:9,mind:6,money:-6,progress:11},"陈牧在诊室里第一次替你守住决定权",function(){state.flags.checkup=true;}, {response:"医生把病历转向你：“检查怎么做、以后怎么选，先听她本人。”陈牧也把椅子挪到你身边，挡下了母亲的代答。"}),
+          choice("让他妈妈继续全程安排","省下心力，也失去一部分主动",{body:5,support:8,trust:-6,mind:-6,progress:6},"复查完成了，决定权却变得模糊",function(){state.flags.checkup=true;}, {response:"医生看了看排满批注的表格，只确认了下一次复查时间。陈牧和母亲接过所有安排，你却像从自己的诊室里退到了旁边。"})
         ]
       };
     }
@@ -2569,8 +2740,8 @@
         stage:"现实期",title:"复查日期和晋升答辩在同一天",face:"沈",place:"company",scene:"life",art:{sheet:"nine",cell:4},
         copy:"这次复查关系到后续生育方案，沈明的晋升答辩也只有一次。他说可以替你预约最好的医生，但人可能到不了。",
         choices:[
-          choice("让他重新排答辩，陪你去复查","第一次让家庭时间不再排在最后",{career:-8,trust:13,intimacy:7,body:9,progress:11},"沈明失去一次加速，却真正出现在医院",function(){state.flags.checkup=true;}),
-          choice("接受司机和专属医生的安排","方案完善，陪伴仍被外包",{money:-7,career:8,trust:-8,intimacy:-7,body:6,progress:6},"复查完成了，你仍然独自走出诊室",function(){state.flags.checkup=true;})
+          choice("让他重新排答辩，陪你去复查","第一次让家庭时间不再排在最后",{career:-8,trust:13,intimacy:7,body:9,progress:11},"沈明失去一次加速，却真正出现在医院",function(){state.flags.checkup=true;}, {response:"沈明盯着两条重叠的日程看了很久，最后给公司打电话：“答辩请重新安排，这个检查不能由别人替我到场。”"}),
+          choice("接受司机和专属医生的安排","方案完善，陪伴仍被外包",{money:-7,career:8,trust:-8,intimacy:-7,body:6,progress:6},"复查完成了，你仍然独自走出诊室",function(){state.flags.checkup=true;}, {response:"沈明把司机、医生和付款凭证一次发齐：“任何问题都直接联系他们。”所有环节都有人负责，唯独他本人没有出现。"})
         ]
       };
     }
@@ -2578,8 +2749,8 @@
       stage:"现实期",title:"半年驻地邀请在检查前一天到来",face:"周",place:"hospital",scene:"clinic",art:{sheet:"plan",cell:11},
       copy:"医生建议你们一起复查，周屿却收到一份去海边驻留半年的邀请。他说这可能是一生只有一次的机会，也说远距离不会改变爱。",
       choices:[
-        choice("请他先完成共同检查再决定","机会可以谈，身体信息不能消失",{body:9,trust:9,intimacy:4,career:-3,progress:11},"周屿第一次为了共同决定推迟出发",function(){state.flags.checkup=true;}),
-        choice("让他先去，你独自完成复查","保护他的自由，也测试你的承受",{body:7,career:5,trust:-7,intimacy:-8,mind:-6,progress:6},"报告出来时，他在另一座城市",function(){state.flags.checkup=true;})
+        choice("请他先完成共同检查再决定","机会可以谈，身体信息不能消失",{body:9,trust:9,intimacy:4,career:-3,progress:11},"周屿第一次为了共同决定推迟出发",function(){state.flags.checkup=true;}, {response:"周屿给驻地负责人打去电话，把出发推迟到复查之后：“先把我们共同面对的事做完，再谈海边。”"}),
+        choice("让他先去，你独自完成复查","保护他的自由，也测试你的承受",{body:7,career:5,trust:-7,intimacy:-8,mind:-6,progress:6},"报告出来时，他在另一座城市",function(){state.flags.checkup=true;}, {response:"周屿在登机前发来长语音，说会一直陪你。报告出来时，拥抱和决定隔着一座城市。"})
       ]
     };
   }
@@ -2590,8 +2761,8 @@
         stage:"家庭协商期",title:"他妈妈说：孩子当然主要跟妈妈",face:"家",place:"parents",scene:"family",art:{sheet:"nine",cell:5},
         copy:"一次家庭聚餐里，陈牧的妈妈默认你会停下事业，陈牧负责挣钱。桌上每个人都说是在为你们好，只有你的未来被提前安排。",
         choices:[
-          choice("让陈牧当场说出共同照护方案","不是替你解释，而是由他承担冲突",{trust:11,intimacy:5,support:5,mind:5,progress:9},"陈牧公开否定了默认的性别分工",function(){state.flags.familyBoundary=true;}),
-          choice("饭后由你单独慢慢解释","表面和平，代际压力继续落在你身上",{trust:-7,intimacy:-4,support:3,mind:-10,progress:5},"和平的成本仍由你一个人承担",function(){state.flags.familyBoundary=false;})
+          choice("让陈牧当场说出共同照护方案","不是替你解释，而是由他承担冲突",{trust:11,intimacy:5,support:5,mind:5,progress:9},"陈牧公开否定了默认的性别分工",function(){state.flags.familyBoundary=true;}, {response:"陈牧放下筷子：“孩子是我们共同照护，她不会默认停工。我会请假、值夜班，也会自己学着带。”"}),
+          choice("饭后由你单独慢慢解释","表面和平，代际压力继续落在你身上",{trust:-7,intimacy:-4,support:3,mind:-10,progress:5},"和平的成本仍由你一个人承担",function(){state.flags.familyBoundary=false;}, {response:"陈牧低声说“回去再谈”，饭桌很快恢复和气。需要解释、拒绝和承受不快的人，仍然只有你。"})
         ]
       };
     }
@@ -2600,8 +2771,8 @@
         stage:"照护协商期",title:"照护预算里只有钱，没有人",face:"友",place:"service",scene:"path",art:{sheet:"collage",cell:6},
         copy:"沈明列出月嫂、托育和家政的完整预算，却不愿意请朋友帮忙。他说欠人情最麻烦；你看见的是所有突发情况仍然只有你们两个人。",
         choices:[
-          choice("邀请三位朋友加入紧急照护协议","让专业服务之外也有人能真正出现",{support:14,trust:8,mind:5,progress:9},"没有父母托底，你们主动组成了自己的家人",function(){state.flags.familyBoundary=true;state.flags.supportBuilt=true;}),
-          choice("只购买最高档服务","计划精确，但没有非商业关系的支点",{money:-10,support:6,trust:-4,mind:-4,progress:5},"照护被定价，孤立风险仍然存在",function(){state.flags.familyBoundary=false;state.flags.supportBuilt=false;})
+          choice("邀请三位朋友加入紧急照护协议","让专业服务之外也有人能真正出现",{support:14,trust:8,mind:5,progress:9},"没有父母托底，你们主动组成了自己的家人",function(){state.flags.familyBoundary=true;state.flags.supportBuilt=true;}, {response:"朋友看完你们列出的紧急照护协议，回了一句：“把能帮的时间写清楚吧，我们不只是名单上的名字。”沈明第一次把人写进预算之外。"}),
+          choice("只购买最高档服务","计划精确，但没有非商业关系的支点",{money:-10,support:6,trust:-4,mind:-4,progress:5},"照护被定价，孤立风险仍然存在",function(){state.flags.familyBoundary=false;state.flags.supportBuilt=false;}, {response:"朋友看着那张只剩服务商的名单，没有再追问。最高档套餐填满了时段，突发时能推门进来的熟人仍然没有。"})
         ]
       };
     }
@@ -2609,8 +2780,8 @@
       stage:"家庭协商期",title:"他不想让孩子困住任何人",face:"周",place:"service",scene:"path",art:{sheet:"plan",cell:2},
       copy:"谈到未来住处时，周屿希望你们保留各自的城市，孩子跟着“当下更自由的人”。他把这叫不互相牺牲，你听见的却是责任随时可能没有固定地址。",
       choices:[
-        choice("先确定孩子的固定住处和轮班底线","成年人可以流动，照护不能漂浮",{trust:10,intimacy:4,support:8,mind:4,progress:9},"周屿开始把留下也理解为一种主动选择",function(){state.flags.familyBoundary=true;}),
-        choice("同意以后看情况再决定","保留想象，也保留巨大的执行风险",{trust:-8,intimacy:5,support:-5,mind:-8,progress:5},"自由被保留，孩子的日常仍没有地址",function(){state.flags.familyBoundary=false;})
+        choice("先确定孩子的固定住处和轮班底线","成年人可以流动，照护不能漂浮",{trust:10,intimacy:4,support:8,mind:4,progress:9},"周屿开始把留下也理解为一种主动选择",function(){state.flags.familyBoundary=true;}, {response:"周屿在地图上圈下一个地址，又把每周照护排班写进日历：“成年人可以移动，孩子不能等我们临时有空。”"}),
+        choice("同意以后看情况再决定","保留想象，也保留巨大的执行风险",{trust:-8,intimacy:5,support:-5,mind:-8,progress:5},"自由被保留，孩子的日常仍没有地址",function(){state.flags.familyBoundary=false;}, {response:"周屿抱住你：“到时候我们一定能商量好。”爱没有减少，孩子明天醒来由谁照顾仍没有答案。"})
       ]
     };
   }
@@ -2623,8 +2794,8 @@
         stage:"承诺期",title:"婚礼日期定了，夜间照护还没定",face:"陈",place:"parents",scene:"family",art:{sheet:"moments",cell:2},
         copy:firstEcho+" 陈牧愿意结婚，也愿意共同养育；但他仍把“我妈会帮忙”当成自己那一半责任。此前的相处结果是「"+lesson+"」。",
         choices:[
-          choice("把父母边界和夜班责任写进婚前协议","稳定不是有人替他做，而是他自己承担",{trust:12,intimacy:6,support:8,money:3,progress:12},"陈牧线形成稳定共担结构"),
-          choice("先结婚，具体分工以后再磨合","关系继续，传统分工风险仍在",{trust:-5,intimacy:5,support:6,mind:-7,progress:7},"婚礼向前，责任仍然模糊"),
+          choice("把父母边界和夜班责任写进婚前协议","稳定不是有人替他做，而是他自己承担",{trust:12,intimacy:6,support:8,money:3,progress:12},"陈牧线形成稳定共担结构",null,{response:"陈牧逐条写下访客边界和夜班轮值，最后签上名字：“这次不是让我妈替我完成，是我自己承担。”"}),
+          choice("先结婚，具体分工以后再磨合","关系继续，传统分工风险仍在",{trust:-5,intimacy:5,support:6,mind:-7,progress:7},"婚礼向前，责任仍然模糊",null,{response:"陈牧握住你的手：“先把婚礼办了，日子总能慢慢磨出来。”日期确定了，责任仍没有负责人。"}),
           choice("这不是我要的共同生活，分手","结束这段关系，不再把时间押在改变他上",{trust:-12,intimacy:-15,mind:8,progress:0},"你结束了与陈牧的关系",null,{ending:"breakup"})
         ]
       };
@@ -2634,8 +2805,8 @@
         stage:"承诺期",title:"他愿意付全部费用，却不愿请一天假",face:"沈",place:"company",scene:"life",art:{sheet:"plan",cell:4},
         copy:firstEcho+" 沈明的财务方案无可挑剔，但陪诊、休假和夜间照顾仍要从事业日程里真正让出位置。此前的相处结果是「"+lesson+"」。",
         choices:[
-          choice("把陪诊、休假和夜班锁进工作日历","他交出的不只是钱，还有不可替代的时间",{career:-7,trust:13,intimacy:7,support:6,progress:12},"沈明把家庭时间设成不可被覆盖的日程"),
-          choice("由他出钱，你负责日常执行","资金更稳，隐形劳动向你集中",{money:10,career:5,trust:-9,intimacy:-6,mind:-9,progress:7},"资源增加，共同承担仍未成立"),
+          choice("把陪诊、休假和夜班锁进工作日历","他交出的不只是钱，还有不可替代的时间",{career:-7,trust:13,intimacy:7,support:6,progress:12},"沈明把家庭时间设成不可被覆盖的日程",null,{response:"沈明把陪诊、休假和夜班标成不可覆盖的红色日程：“这些时间不能授权给别人，也不能被工作挪走。”"}),
+          choice("由他出钱，你负责日常执行","资金更稳，隐形劳动向你集中",{money:10,career:5,trust:-9,intimacy:-6,mind:-9,progress:7},"资源增加，共同承担仍未成立",null,{response:"沈明把共同账户的额度调高：“日常需要什么就直接买。”钱进入了家庭，琐碎、夜晚和临时变化仍全部落在你身上。"}),
           choice("我要的是同行者，不是赞助人，分手","结束资源充足却持续缺席的关系",{trust:-13,intimacy:-12,mind:9,progress:0},"你结束了与沈明的关系",null,{ending:"breakup"})
         ]
       };
@@ -2644,8 +2815,8 @@
       stage:"承诺期",title:"他想要孩子，却仍不肯确定住处",face:"周",place:"cafe",scene:"date",art:{sheet:"moments",cell:11},
       copy:firstEcho+" 周屿说爱你，也说自己可能随时去另一座城市生活。此前的相处结果是「"+lesson+"」。孩子需要的不是保证永远浪漫，而是明天仍有人出现。",
       choices:[
-        choice("确定三年住处和照护排班","自由保留，责任不再靠临场发挥",{money:6,career:3,trust:11,intimacy:5,support:6,progress:12},"周屿第一次给共同生活一个期限和地址"),
-        choice("接受两地生活，靠临时协调","亲密不减，照护风险继续漂浮",{trust:-7,intimacy:6,money:-6,support:-5,mind:-7,progress:6},"浪漫仍在，稳定地址仍然缺席"),
+        choice("确定三年住处和照护排班","自由保留，责任不再靠临场发挥",{money:6,career:3,trust:11,intimacy:5,support:6,progress:12},"周屿第一次给共同生活一个期限和地址",null,{response:"周屿把三年住处和轮班表贴在墙上：“留下不是失去自由，是我主动选择和你们在这里。”"}),
+        choice("接受两地生活，靠临时协调","亲密不减，照护风险继续漂浮",{trust:-7,intimacy:6,money:-6,support:-5,mind:-7,progress:6},"浪漫仍在，稳定地址仍然缺席",null,{response:"周屿订好下一趟车票：“距离不会改变我们。”共同生活继续，固定的照护地址仍然没有出现。"}),
         choice("我不能等你有一天愿意留下，分手","承认爱是真的，也承认它不足以共同养育",{trust:-10,intimacy:-16,mind:10,progress:0},"你结束了与周屿的关系",null,{ending:"breakup"})
       ]
     };
@@ -3514,16 +3685,112 @@
     toastTimer=window.setTimeout(function(){el.classList.remove("is-show");},1500);
   }
 
+  function endingMemories(){
+    var history=state&&state.history||[];
+    var picked=[];
+    if(history.length<=3){
+      picked=history.slice();
+    }else{
+      picked=[history[0],history[Math.floor((history.length-1)/2)],history[history.length-1]];
+    }
+    var result=picked.map(function(item){
+      return (item.eventTitle?item.eventTitle+" · ":"")+(item.note||item.choiceTitle||"做出了一次人生选择");
+    });
+    var logs=state&&state.logs||[];
+    for(var i=Math.max(0,logs.length-3);result.length<3&&i<logs.length;i++){
+      if(result.indexOf(logs[i])<0) result.push(logs[i]);
+    }
+    while(result.length<3) result.push("这一生仍然在你的选择里继续生长");
+    return result.slice(0,3);
+  }
+
+  function endingTitle(type,detail){
+    if(type==="breakup"){
+      return {chen:"婆婆的钥匙留在门外",shen:"赞助人不是同行者",zhou:"末班车开走以后"}[state.root.key]||"这段关系到这里";
+    }
+    if(type==="retirement") return "紫花养老院";
+    if(type==="failure"){
+      return {
+        money:"钱花完以前，路先停了",career:"事业失去支点的那一年",body:"身体替你按下暂停",trust:"没有说出口的共同答案",
+        intimacy:"两个人走成了两条路",support:"凌晨三点没有人接电话",mind:"心力见底以后",progress:"还没准备好的这个家"
+      }[detail]||"这条人生路线暂停了";
+    }
+    if(state.root.key==="solo"&&/辅助|供精/.test(state.path)) return "一个人的决定，一群人的家";
+    if(/领养/.test(state.path)) return "今天，我们成为一家人";
+    if(/共同养育|共养/.test(state.path)) return "凌晨三点有人接电话";
+    if(/辅助/.test(state.path)) return "清晨的哭声终于响起";
+    return "春天住进了这个家";
+  }
+
+  function shareEndingCard(type,detail,closing,actions){
+    var memories=endingMemories();
+    var title=endingTitle(type,detail);
+    var origin=state.root.key==="solo"?"独自开始":"与 "+state.root.name+" 开始";
+    var failureStatus={
+      money:"资金耗尽",career:"事业失去支点",body:"身体亮起红灯",trust:"信任跌破底线",
+      intimacy:"亲密关系破裂",support:"照护支持断开",mind:"心力见底",progress:"生育准备停滞"
+    };
+    var status;
+    if(type==="win") status="通关路线 · "+state.path;
+    else if(type==="breakup") status="关系结局 · 与 "+state.root.name+" 分手";
+    else if(type==="retirement") status="本局未通关 · 没有孩子进入家庭";
+    else status="路线中断 · "+(failureStatus[detail]||detail);
+    var decisions=state.history.length;
+    var year=Math.max(1,Math.floor(((state.elapsed||0)+state.step)/4)+1);
+    sharePayload={title:title,status:status,memories:memories,closing:closing};
+    var memoryHtml="";
+    for(var i=0;i<memories.length;i++){
+      memoryHtml+='<div class="v8-share-memory"><b>0'+(i+1)+'</b><span>'+escapeHtml(memories[i])+'</span></div>';
+    }
+    var card=document.getElementById("v3-ending-card");
+    card.className="v3-ending-card v8-share-shell";
+    card.innerHTML=
+      '<section class="v8-share-card" aria-label="可截图分享的人生小传">'+
+        '<div class="v8-share-brand"><b>《我想生个娃》</b><span>MY LIFE STORY</span></div>'+
+        '<div class="v8-share-hero">'+
+          '<div class="v8-share-avatar v3-sprite v3-sprite-'+state.root.key+'" role="img" aria-label="'+escapeHtml(state.root.name)+'像素人物"></div>'+
+          '<div><div class="v8-share-kicker">我的人生结局</div><h1 class="v8-share-title">'+escapeHtml(title)+'</h1><div class="v8-share-route">'+escapeHtml(status)+'</div></div>'+
+        '</div>'+
+        '<div class="v8-share-memories"><h3>这一生，我记住了</h3>'+memoryHtml+'</div>'+
+        '<p class="v8-share-closing">'+escapeHtml(closing)+'</p>'+
+        '<div class="v8-share-stats">'+
+          '<div class="v8-share-stat"><b>'+escapeHtml(origin)+'</b><span>人生起点</span></div>'+
+          '<div class="v8-share-stat"><b>第 '+year+' 年</b><span>走到这里</span></div>'+
+          '<div class="v8-share-stat"><b>'+decisions+' 次</b><span>关键决定</span></div>'+
+        '</div>'+
+        '<footer class="v8-share-footer"><b>不结婚，能生娃吗？这个游戏说可以。</b><span>截图这张人生小传，看看朋友会替你怎么选。</span><small>dangxiaoshi.github.io/baby-game-play-20260719/</small></footer>'+
+      '</section>'+
+      '<div class="v8-share-hint">长按截图，或点击分享这段人生</div>'+
+      '<div class="v3-top-actions v8-share-actions"><button class="v3-btn" data-v8-share>分享这段人生</button>'+actions+'</div>';
+  }
+
+  function copyShareText(text){
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){pop("人生小传已复制");}).catch(function(){pop("请长按截图分享");});
+    }else{
+      pop("请长按截图分享");
+    }
+  }
+
+  function shareCurrentEnding(){
+    if(!sharePayload) return;
+    var url="https://dangxiaoshi.github.io/baby-game-play-20260719/";
+    var text=sharePayload.title+"\n"+sharePayload.status+"\n"+
+      sharePayload.memories.map(function(item,index){return (index+1)+". "+item;}).join("\n")+
+      "\n"+sharePayload.closing;
+    if(navigator.share){
+      navigator.share({title:"《我想生个娃》｜"+sharePayload.title,text:text,url:url}).catch(function(error){
+        if(!error||error.name!=="AbortError") copyShareText(text+"\n"+url);
+      });
+    }else{
+      copyShareText(text+"\n"+url);
+    }
+  }
+
   function showRelationshipEnd(){
     var name=state.root.name;
-    var artByRoute={
-      chen:"v3-story-moments v3-wide-10",
-      shen:"v3-story-plan v3-wide-9",
-      zhou:"v3-story-collage v3-wide-6"
-    };
-    var breakupArt=artByRoute[state.root.key]||"v3-story-nine v3-wide-9";
-    var card=document.getElementById("v3-ending-card");
-    card.innerHTML='<div class="v3-ending-scene v3-event-illustration '+breakupArt+'" aria-label="分手后独自重新规划生活的像素场景"></div><div class="v3-kicker">RELATIONSHIP ENDED</div><h1>这段关系到这里</h1><div class="v3-ending-route">你和 '+escapeHtml(name)+' 分手了</div><p>结束一段不适合共同养育的关系，不等于结束想要孩子的人生。现在可以重新认识别人，也可以不再选择伴侣，带着已经看清的东西继续准备。</p><div class="v3-top-actions"><button class="v3-btn" data-v3-action="after-breakup-origins">重新认识别人</button><button class="v3-btn v3-soft" data-v3-action="after-breakup-solo">暂不选择伴侣，继续准备</button><button class="v3-btn v3-ghost" data-v3-action="home">回到首页</button></div>';
+    shareEndingCard("breakup",name,"结束一段不适合共同养育的关系，不等于结束想要孩子的人生。",
+      '<button class="v3-btn v3-soft" data-v3-action="after-breakup-solo">转入单身路线</button><button class="v3-btn v3-ghost" data-v3-action="after-breakup-origins">重新认识别人</button>');
     show("v3-ending");
   }
 
@@ -3554,28 +3821,27 @@
     }else{
       copy="你一次次把决定留给以后，也拥有工作、朋友和自己的生活。晚年住进养老社区时，孩子没有进入这个家。";
     }
-    var card=document.getElementById("v3-ending-card");
-    card.innerHTML='<div class="v3-ending-scene v3-event-illustration v3-retirement-scene" aria-label="紫花与养老社区的像素晚年场景"></div><div class="v3-kicker">END OF LIFE</div><h1>紫花开在养老院窗外</h1><div class="v3-ending-route">本局未通关 · 没有孩子进入家庭</div><p>'+copy+' 这不是对人生价值的评判，只是这局游戏的唯一目标没有完成。</p><div class="v3-summary"><div><b>'+Math.round(state.metrics.money)+'</b><span>最终资金</span></div><div><b>'+Math.round(state.metrics.mind)+'</b><span>最终心力</span></div><div><b>'+state.logs.length+'</b><span>人生决定</span></div></div><div class="v3-top-actions"><button class="v3-btn" data-v3-action="retry">重走这一生</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button></div>';
+    shareEndingCard("retirement","没有孩子进入家庭",copy+" 没有通关，不等于这一生没有价值。",
+      '<button class="v3-btn v3-soft" data-v3-action="retry">重走这一生</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button>');
     show("v3-ending");
   }
 
   function showFailure(metric){
     var labels={money:"资金耗尽",career:"事业支点断裂",body:"身体亮起红灯",trust:"共识崩塌",intimacy:"亲密关系失联",support:"照护网断裂",mind:"心力透支",progress:"孩子路径尚未准备完成"};
-    var card=document.getElementById("v3-ending-card");
-    card.innerHTML='<div class="v3-baby-mark">暂停</div><div class="v3-kicker">ROUTE INTERRUPTED</div><h1>本局未通关</h1><div class="v3-ending-route">'+labels[metric]+'</div><p>这不是“不配拥有孩子”。它说明当前路线需要更多资源、更多协商，或者换一种抵达方式。</p><div class="v3-top-actions"><button class="v3-btn" data-v3-action="retry">从这条路重开</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button></div>';
+    shareEndingCard("failure",metric,"这不是“不配拥有孩子”。暂停只是提醒：这条路线还需要更多资源、更多协商，或者换一种抵达方式。",
+      '<button class="v3-btn v3-soft" data-v3-action="retry">从这条路重开</button><button class="v3-btn v3-ghost" data-v3-action="origins">换一个起点</button>');
     show("v3-ending");
   }
 
   function showWin(){
-    var m=state.metrics;
-    var copy="你通过「"+state.path+"」走到了这里。伴侣可以参与，也可以不参与；血缘可以存在，也可以不存在。真正让家庭成立的，是持续的选择、承诺与照顾。";
-    var arrivalScene='<div class="v3-ending-scene v3-event-illustration v3-atlas-15" aria-label="孩子进入家庭的完整像素通关插画"></div>';
-    var card=document.getElementById("v3-ending-card");
-    card.innerHTML=arrivalScene+'<div class="v3-kicker">MISSION COMPLETE</div><h1>孩子来到这个家</h1><div class="v3-ending-route">通关路线 · '+state.path+'</div><p>'+copy+'</p><div class="v3-summary"><div><b>'+Math.round(m.support)+'</b><span>照护网</span></div><div><b>'+Math.round(m.body)+'</b><span>身体余力</span></div><div><b>'+state.logs.length+'</b><span>关键决定</span></div></div><div class="v3-top-actions"><button class="v3-btn" data-v3-action="origins">体验另一条路</button><button class="v3-btn v3-ghost" data-v3-action="home">回到首页</button></div>';
+    shareEndingCard("win",state.path,"伴侣可以参与，也可以不参与；血缘可以存在，也可以不存在。真正让家庭成立的，是持续的选择、承诺与照顾。",
+      '<button class="v3-btn v3-soft" data-v3-action="origins">体验另一条路</button><button class="v3-btn v3-ghost" data-v3-action="home">回到首页</button>');
     show("v3-ending");
   }
 
   function handleClick(e){
+    var shareButton=e.target.closest("[data-v8-share]");
+    if(shareButton){shareCurrentEnding();return;}
     var feedbackContinue=e.target.closest("[data-v5-feedback-continue]");
     if(feedbackContinue){finishChoiceAdvance();return;}
     var close=e.target.closest("[data-v4-close]");
